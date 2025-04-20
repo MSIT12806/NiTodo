@@ -1,0 +1,48 @@
+﻿<Window x:Class="NiTodo.Desktop.ListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NiToDo" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NiTodo.Desktop"
+        Width="400" Height="300"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="White"
+        ResizeMode="CanResizeWithGrip">
+    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8">
+        <Grid>
+            <!-- 自訂標題列 -->
+            <Grid Background="LightGray" Height="40" VerticalAlignment="Top" MouseDown="TitleBar_MouseDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                
+                <!-- 左邊是 App 名稱 -->
+                <TextBlock Text="NiToDo" FontSize="16" Margin="10,0" VerticalAlignment="Center" Grid.Column="0"  />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,0" Grid.Column="1">
+                    <!-- 調整透明度 -->
+                    <Slider Width="100" Minimum="0.2" Maximum="1.0" Value="1.0"
+                            ValueChanged="OpacitySlider_ValueChanged"
+                            VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <!-- 控制懸浮 -->
+                    <CheckBox Content="" VerticalAlignment="Center"
+                              Checked="TopmostCheckBox_Checked"
+                              Unchecked="TopmostCheckBox_Unchecked" />
+                    <!-- 最右邊縮小/關閉按鈕 -->
+                    <Button Content="—" Width="30" Click="Minimize_Click" />
+                    <Button Content="X" Width="30" Click="Close_Click" />
+                </StackPanel>
+
+            </Grid>
+
+            <!-- 下面可以放主內容 -->
+            <StackPanel x:Name="TodoListPanel" Margin="10,50,10,10" MouseDown="TodoListPanel_MouseDoubleClick">
+                <TextBlock Text="雙擊左鍵以新增代辦事項" FontSize="20" />
+                <!-- 這裡是未來的待辦清單 -->
+            </StackPanel>
+
+        </Grid>
+    </Border>
+</Window>

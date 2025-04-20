@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiTodo.App", "NiTodo.App\Ni
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{37819DDE-42CE-4253-B5C9-140224F6A4B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DomainInfra", "..\..\MyPortfolio\Sudoku\LH\DomainInfra\DomainInfra.csproj", "{B085E9E2-5EA8-B453-BF42-A7647973D1FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{37819DDE-42CE-4253-B5C9-140224F6A4B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37819DDE-42CE-4253-B5C9-140224F6A4B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37819DDE-42CE-4253-B5C9-140224F6A4B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B085E9E2-5EA8-B453-BF42-A7647973D1FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B085E9E2-5EA8-B453-BF42-A7647973D1FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B085E9E2-5EA8-B453-BF42-A7647973D1FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B085E9E2-5EA8-B453-BF42-A7647973D1FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

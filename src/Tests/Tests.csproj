@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\MyPortfolio\Sudoku\LH\DomainInfra\DomainInfra.csproj" />
+    <ProjectReference Include="..\NiTodo.App\NiTodo.App.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
