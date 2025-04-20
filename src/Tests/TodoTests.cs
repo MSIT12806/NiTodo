@@ -56,6 +56,9 @@ namespace Tests
             var todos = todoService.GetAllTodos();
             Assert.That(todos[0].CompletedAfterFiveSeconds(DateTime.Now.AddSeconds(5)), Is.True);
         }
+
+        //TODO: 測試 service.GetAllTodos() 
+        //TODO: 測試 serevice.ShouldShow()
     }
 
     internal class TodoCreatedEventTestHandler : IDomainEventHandler
