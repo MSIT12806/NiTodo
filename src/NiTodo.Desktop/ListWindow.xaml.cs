@@ -4,11 +4,13 @@ using NiTodo.App;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace NiTodo.Desktop
 {
     public class RefreshWindowEventHandler : IDomainEventHandler
     {
+        //TODO: 這可能要跟框架分手，因為 這個類應該是 App Layer 的一部分
         private readonly ListWindow _listWindow;
         public RefreshWindowEventHandler(ListWindow listWindow)
         {
@@ -38,6 +40,8 @@ namespace NiTodo.Desktop
             var domainEventDispatcher = App.ServiceProvider.GetRequiredService<DomainEventDispatcher>();
             var refreshWindowHandler = new RefreshWindowEventHandler(this);
             domainEventDispatcher.Register(refreshWindowHandler);
+
+            RefreshWindow(); // 初始化畫面
         }
 
         #region 自訂標題列
@@ -96,21 +100,13 @@ namespace NiTodo.Desktop
             // 清空目前 StackPanel 裡的動態內容（保留第一個提示文字）
             TodoListPanel.Children.Clear();
             var service = App.ServiceProvider.GetRequiredService<TodoService>();
-            var list = service.GetShouldShow();
+            var list = service.ShowTodo();
 
             // 把每一個待辦項目加進畫面
             foreach (var todo in list)
             {
                 AddToPanel(todo);
             }
-
-            // 重新放一個標題或提示
-            TodoListPanel.Children.Add(new TextBlock
-            {
-                Text = "雙擊左鍵以新增代辦事項",
-                FontSize = 20,
-                Margin = new Thickness(0, 0, 0, 10)
-            });
         }
 
         private void AddToPanel(TodoItem todo)
@@ -155,19 +151,41 @@ namespace NiTodo.Desktop
             service.CompleteTodo(item.Id);
         }
 
-        private void TodoListPanel_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        #region 用來模擬 placeholder 行為
+        private void NewTodoTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (e.ChangedButton != MouseButton.Left || e.ClickCount != 2)
+            var tb = sender as TextBox;
+            if (tb.Text == "" && tb.Tag is string placeholder)
             {
-                return;
+                tb.Foreground = Brushes.Black;
+                tb.Text = "";
             }
+        }
 
-            string newTodo = Microsoft.VisualBasic.Interaction.InputBox("輸入代辦事項：", "新增代辦", "");
-            if (!string.IsNullOrWhiteSpace(newTodo))
+        private void NewTodoTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var tb = sender as TextBox;
+            if (string.IsNullOrWhiteSpace(tb.Text))
             {
-                var service = App.ServiceProvider.GetRequiredService<TodoService>();
-                service.CreateTodo(newTodo);
+                tb.Text = "";
+                tb.Foreground = Brushes.Gray;
+                tb.Text = (string)tb.Tag;
             }
+        }
+        #endregion
+
+        private void AddTodoButton_Click(object sender, RoutedEventArgs e)
+        {
+            string content = NewTodoTextBox.Text.Trim();
+
+            // 確認不是 placeholder
+            if (string.IsNullOrWhiteSpace(content) || content == (string)NewTodoTextBox.Tag)
+                return;
+
+            var service = App.ServiceProvider.GetRequiredService<TodoService>();
+            service.CreateTodo(content);
+
+            NewTodoTextBox.Text = ""; // 清空輸入框
         }
     }
 }

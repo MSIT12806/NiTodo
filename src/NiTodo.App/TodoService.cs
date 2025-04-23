@@ -15,6 +15,24 @@ namespace NiTodo.App
             _domainEventDispatcher = domainEventDispatcher;
         }
 
+        public void CancelCompleteTodo(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("Todo ID cannot be empty.", nameof(id));
+            }
+            var todoItem = _todoRepository.GetAll().Find(t => t.Id == id);
+            if (todoItem == null)
+            {
+                throw new KeyNotFoundException($"Todo with ID {id} not found.");
+            }
+            todoItem.Uncomplete();
+
+            // 發出領域事件
+            var todoUncompletedEvent = new TodoUncompletedEvent(todoItem);
+            _domainEventDispatcher.Dispatch(todoUncompletedEvent, null);
+        }
+
         public void CompleteTodo(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -66,7 +84,7 @@ namespace NiTodo.App
             return _todoRepository.GetAll();
         }
 
-        public List<TodoItem> GetShouldShow()
+        public List<TodoItem> ShowTodo()
         {
             return _todoRepository.GetShouldShow();
         }

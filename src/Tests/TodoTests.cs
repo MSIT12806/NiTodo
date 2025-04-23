@@ -58,10 +58,63 @@ namespace Tests
         }
 
         //TODO: 測試 service.GetAllTodos() 
-        //TODO: 測試 serevice.ShouldShow()
+
+        #region ShowTodo
+
+        //// 1. 顯示該顯示的
+        //// 2. 不顯示不該顯示的
+        [Test]
+        public void ShowTodo_should_show_todo_uncompleted()
+        {
+            //Arrange .. create a uncompleted todo item
+            var id = todoService.CreateTodo("Test Todo");
+            //Act .. excute ShowTodo
+            var todos = todoService.ShowTodo();
+            //Assert
+            Assert.That(todos.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ShowTodo_should_show_todo_completed()
+        {
+            //Arrange .. create a completed todo item
+            var id = todoService.CreateTodo("Test Todo");
+            todoService.CompleteTodo(id);
+            //Act .. excute ShowTodo
+            var todos = todoService.ShowTodo();
+            //Assert
+            Assert.That(todos.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ShowTodo_should_not_show_todo_completed_after_five_seconds()
+        {
+            //Arrange .. create a completed todo item
+            var id = todoService.CreateTodo("Test Todo");
+            todoService.CompleteTodo(id);
+            Thread.Sleep(5001);
+            //Act .. excute ShowTodo
+            var todos = todoService.ShowTodo();
+            //Assert
+            Assert.That(todos.Count, Is.EqualTo(0));
+        }
+        #endregion
+        //測試取消完成代辦事項的功能
+        [Test]
+        public void CancelCompleteTodoItem()
+        {
+            // Arrange
+            var id = todoService.CreateTodo("Test Todo");
+            todoService.CompleteTodo(id);
+            // Act
+            todoService.CancelCompleteTodo(id);
+            // Assert
+            var todos = todoService.GetAllTodos();
+            Assert.That(todos[0].IsCompleted, Is.False);
+        }
     }
 
-    internal class TodoCreatedEventTestHandler : IDomainEventHandler
+    public class TodoCreatedEventTestHandler : IDomainEventHandler
     {
         public bool isCreated = false;
         public void Handle(IDomainEvent domainEvent)

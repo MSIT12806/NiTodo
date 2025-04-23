@@ -36,11 +36,28 @@
                 </StackPanel>
 
             </Grid>
+            <StackPanel Margin="10,50,10,10" Orientation="Vertical">
+                <!-- 輸入區 -->
+                <DockPanel LastChildFill="True" Margin="0,0,0,10">
+                    <TextBox x:Name="NewTodoTextBox"
+                 Width="300"
+                 VerticalAlignment="Center"
+                 Margin="0,0,10,0"
+                 Height="30"
+                 FontSize="14"
+                 Text=""
+                 Tag="新增代辦事項"
+                 GotFocus="NewTodoTextBox_GotFocus"
+                 LostFocus="NewTodoTextBox_LostFocus"/>
+                    <Button Content="新增"
+                Width="60"
+                Height="30"
+                Click="AddTodoButton_Click" />
+                </DockPanel>
 
-            <!-- 下面可以放主內容 -->
-            <StackPanel x:Name="TodoListPanel" Margin="10,50,10,10" MouseDown="TodoListPanel_MouseDoubleClick">
-                <TextBlock Text="雙擊左鍵以新增代辦事項" FontSize="20" />
+            <StackPanel x:Name="TodoListPanel" Margin="10,50,10,10">
                 <!-- 這裡是未來的待辦清單 -->
+            </StackPanel>
             </StackPanel>
 
         </Grid>

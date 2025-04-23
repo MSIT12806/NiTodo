@@ -36,4 +36,49 @@ namespace NiTodo.App
             return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
         }
     }
+
+    public class FileTodoRepository : ITodoRepository
+    {
+        List<TodoItem> _todoItems = new List<TodoItem>();
+        readonly string _filePath = "todo.txt";
+        public FileTodoRepository()
+        {
+            // 讀取檔案內容
+            if (System.IO.File.Exists(_filePath))
+            {
+                ReadFromFile();
+            }
+        }
+        private void ReadFromFile()
+        {
+            // 將 file 內容全部讀取到 _todoItems
+            var json = System.IO.File.ReadAllText(_filePath);
+            _todoItems = Newtonsoft.Json.JsonConvert.DeserializeObject<List<TodoItem>>(json);
+        }
+        private void WriteToFile()
+        {
+            // 將 _todoItems 轉換成 json 字串，然後存進檔案當中
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(_todoItems);
+            System.IO.File.WriteAllText(_filePath, json);
+        }
+        public void Add(TodoItem todoItem)
+        {
+            // 將 todoItem 儲存到檔案的邏輯
+            if (todoItem == null)
+            {
+                throw new System.ArgumentNullException(nameof(todoItem));
+            }
+            _todoItems.Add(todoItem);
+            WriteToFile();
+        }
+        public List<TodoItem> GetAll()
+        {
+            return _todoItems;
+        }
+        public List<TodoItem> GetShouldShow()
+        {
+            // 取得所有的 TodoItem，並且過濾掉已經完成的
+            return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
+        }
+    }
 }

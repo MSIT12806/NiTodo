@@ -22,5 +22,10 @@ namespace NiTodo.App
             var timeSpan = dt - completeDateTime;
             return timeSpan.TotalSeconds > 5;
         }
+
+        public void Uncomplete()
+        {
+            CompleteDateTime = null;
+        }
     }
 }
