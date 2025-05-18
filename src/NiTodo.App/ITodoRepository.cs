@@ -8,8 +8,8 @@ namespace NiTodo.App
     {
         void Add(TodoItem todoItem);
         List<TodoItem> GetAll();
-
         List<TodoItem> GetShouldShow();
+        void SaveChange(TodoItem item);
     }
 
     public class InMemoryTodoRepository : ITodoRepository
@@ -34,6 +34,13 @@ namespace NiTodo.App
         public List<TodoItem> GetShouldShow()
         {
             return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
+        }
+
+        public void SaveChange(TodoItem item)
+        {
+            var oriItem = _todoItems.First(i => i.Id == item.Id);
+            var index = _todoItems.IndexOf(oriItem);
+            _todoItems[index] = item;
         }
     }
 
@@ -79,6 +86,14 @@ namespace NiTodo.App
         {
             // 取得所有的 TodoItem，並且過濾掉已經完成的
             return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
+        }
+
+        public void SaveChange(TodoItem item)
+        {
+            var oriItem = _todoItems.First(i => i.Id == item.Id);
+            var index = _todoItems.IndexOf(oriItem);
+            _todoItems[index] = item;
+            WriteToFile();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace NiTodo.App
     {
         public string Id { get; set; }
         public string Content { get; set; }
-        private DateTime? CompleteDateTime { get; set; }
+        public DateTime? CompleteDateTime { get; set; }
         public void Complete()
         {
             CompleteDateTime = DateTime.Now;

@@ -112,6 +112,32 @@ namespace Tests
             var todos = todoService.GetAllTodos();
             Assert.That(todos[0].IsCompleted, Is.False);
         }
+
+        [Test]
+        public void AddSubTodoItem()
+        {
+            // Arrange
+            var id = todoService.CreateTodo("Test Todo");
+            // Act
+            var subId = todoService.CreateSubTodo(id, "Test Sub Todo");
+            // Assert
+            var todos = todoService.GetAllTodos();
+            Assert.That(todos[0].SubTodoItems.Count, Is.EqualTo(1));
+            Assert.That(todos[0].SubTodoItems[0].Id, Is.EqualTo(subId));
+        }
+
+        [Test]
+        private void CompleteParentTodoItemWhenSubTodoItemNotCompleted_Error()
+        {
+            // Arrange
+            var id = todoService.CreateTodo("Test Todo");
+            var subId = todoService.CreateSubTodo(id, "Test Sub Todo");
+            // Act
+            todoService.CompleteTodo(subId);
+            // Assert
+            var todos = todoService.GetAllTodos();
+            Assert.That(todos[0].IsCompleted, Is.False);
+        }
     }
 
     public class TodoCreatedEventTestHandler : IDomainEventHandler

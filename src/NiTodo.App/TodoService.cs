@@ -27,6 +27,7 @@ namespace NiTodo.App
                 throw new KeyNotFoundException($"Todo with ID {id} not found.");
             }
             todoItem.Uncomplete();
+            _todoRepository.SaveChange(todoItem);
 
             // 發出領域事件
             var todoUncompletedEvent = new TodoUncompletedEvent(todoItem);
@@ -45,6 +46,7 @@ namespace NiTodo.App
                 throw new KeyNotFoundException($"Todo with ID {id} not found.");
             }
             todoItem.Complete();
+            _todoRepository.SaveChange(todoItem);
             // 發出領域事件
             var todoCompletedEvent = new TodoCompletedEvent(todoItem);
             _domainEventDispatcher.Dispatch(todoCompletedEvent, null);
