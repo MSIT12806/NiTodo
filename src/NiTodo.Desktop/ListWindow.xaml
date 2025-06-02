@@ -37,6 +37,12 @@
 
             </Grid>
             <StackPanel Margin="10,50,10,10" Orientation="Vertical">
+                <!-- 篩選區塊 -->
+                <WrapPanel x:Name="FilterPanel" Margin="0,0,0,10">
+                    <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
+                    <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
+                    <!-- Tag checkboxes 將由程式碼動態加入 -->
+                </WrapPanel>
                 <!-- 輸入區 -->
                 <DockPanel LastChildFill="True" Margin="0,0,0,10">
                     <TextBox x:Name="NewTodoTextBox"

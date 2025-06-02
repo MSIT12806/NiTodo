@@ -94,15 +94,19 @@ namespace NiTodo.App
             return _todoRepository.GetAll();
         }
 
-        public List<TodoItem> ShowTodo()
+        public List<TodoItem> ShowTodo(bool showCompleted = false)
         {
+            if (showCompleted)
+            {
+                return _todoRepository.GetAll();
+            }
+
             return _todoRepository.GetShouldShow();
         }
 
-        public void UpdateTodo(string id, string newText)
+        public void UpdateTodo(TodoItem todo)
         {
-            var todoItem = GetItem(id);
-
+            _todoRepository.SaveChange(todo);
         }
     }
 }

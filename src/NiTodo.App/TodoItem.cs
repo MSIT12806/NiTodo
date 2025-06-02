@@ -8,7 +8,7 @@ namespace NiTodo.App
         public string Id { get; set; }
         public string Content { get; set; }
         public DateTime? PlannedDate { get; set; }
-        public List<string> Tags { get; set; } = new List<string>();
+        public HashSet<string> Tags { get; set; } = new HashSet<string>();
         public DateTime? CompleteDateTime { get; set; }
         public void Complete()
         {

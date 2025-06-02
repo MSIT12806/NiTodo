@@ -32,6 +32,8 @@ namespace NiTodo.Desktop
     /// </summary>
     public partial class ListWindow : Window
     {
+        TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
+        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false);
         public ListWindow()
         {
             InitializeComponent();
@@ -88,6 +90,7 @@ namespace NiTodo.Desktop
         }
         #endregion
 
+        #region Render Window
         public void RefreshWindow()
         {
             if (!Dispatcher.CheckAccess())
@@ -99,13 +102,38 @@ namespace NiTodo.Desktop
 
             // 清空目前 StackPanel 裡的動態內容（保留第一個提示文字）
             TodoListPanel.Children.Clear();
-            var service = App.ServiceProvider.GetRequiredService<TodoService>();
-            var list = service.ShowTodo();
 
             // 把每一個待辦項目加進畫面
-            foreach (var todo in list)
+            foreach (var todo in todos)
             {
                 AddToPanel(todo);
+            }
+
+            RenderTagFilters();
+        }
+
+        private void RenderTagFilters()
+        {
+            // 清掉舊的 tag checkbox（保留固定的前兩個）
+            while (FilterPanel.Children.Count > 2)
+                FilterPanel.Children.RemoveAt(2);
+
+            var tags = todos
+                .SelectMany(t => t.Tags)
+                .Distinct()
+                .OrderBy(t => t);
+
+            foreach (var tag in tags)
+            {
+                var cb = new CheckBox
+                {
+                    Content = tag,
+                    Tag = tag,
+                    Margin = new Thickness(5, 0, 0, 0)
+                };
+                cb.Checked += FilterChanged;
+                cb.Unchecked += FilterChanged;
+                FilterPanel.Children.Add(cb);
             }
         }
 
@@ -153,6 +181,15 @@ namespace NiTodo.Desktop
 
             TodoListPanel.Children.Add(stack);
         }
+        #endregion
+
+        #region Search Area
+        private void FilterChanged(object sender, RoutedEventArgs e)
+        {
+            RefreshWindow();
+        }
+
+        #endregion 
         private async Task OnTodoItemChecked(TodoItem item)
         {
             var service = App.ServiceProvider.GetRequiredService<TodoService>();
@@ -161,12 +198,10 @@ namespace NiTodo.Desktop
 
         private void EditTodoItem(TodoItem todo)
         {
-            var inputDialog = new EditTodoDialog(todo.Content);
+            var inputDialog = new EditTodoDialog(todo);
             if (inputDialog.ShowDialog() == true)
             {
-                var newText = inputDialog.NewText;
-                var service = App.ServiceProvider.GetRequiredService<TodoService>();
-                service.UpdateTodo(todo.Id, newText);
+                service.UpdateTodo(todo);
                 RefreshWindow();
             }
         }
