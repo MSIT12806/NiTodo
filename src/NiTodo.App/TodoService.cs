@@ -1,5 +1,6 @@
 ﻿using DomainInfra;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -36,15 +37,7 @@ namespace NiTodo.App
 
         public void CompleteTodo(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException("Todo ID cannot be empty.", nameof(id));
-            }
-            var todoItem = _todoRepository.GetAll().Find(t => t.Id == id);
-            if (todoItem == null)
-            {
-                throw new KeyNotFoundException($"Todo with ID {id} not found.");
-            }
+            TodoItem todoItem = GetItem(id);
             todoItem.Complete();
             _todoRepository.SaveChange(todoItem);
             // 發出領域事件
@@ -59,6 +52,21 @@ namespace NiTodo.App
                 var fiveSecondsLaterEvent = new TodoCompletedAfterFiveSecondsEvent(todoItem);
                 _domainEventDispatcher.Dispatch(fiveSecondsLaterEvent, null);
             });
+        }
+
+        private TodoItem GetItem(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("Todo ID cannot be empty.", nameof(id));
+            }
+            var todoItem = _todoRepository.GetAll().Find(t => t.Id == id);
+            if (todoItem == null)
+            {
+                throw new KeyNotFoundException($"Todo with ID {id} not found.");
+            }
+
+            return todoItem;
         }
 
         public string CreateTodo(string todoContent)
@@ -89,6 +97,12 @@ namespace NiTodo.App
         public List<TodoItem> ShowTodo()
         {
             return _todoRepository.GetShouldShow();
+        }
+
+        public void UpdateTodo(string id, string newText)
+        {
+            var todoItem = GetItem(id);
+
         }
     }
 }

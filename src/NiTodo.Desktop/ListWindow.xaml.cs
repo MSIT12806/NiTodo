@@ -130,6 +130,14 @@ namespace NiTodo.Desktop
                 Margin = new Thickness(0, 5, 0, 5)
             };
 
+            todoTextBlock.MouseDown += (s, e) =>
+            {
+                if (e.ClickCount == 2)
+                {
+                    EditTodoItem(todo);
+                }
+            };
+
             // 綁定 CheckBox
             checkBox.IsChecked = todo.IsCompleted;
             checkBox.Checked += async (s, e) => await OnTodoItemChecked(todo);
@@ -149,6 +157,18 @@ namespace NiTodo.Desktop
         {
             var service = App.ServiceProvider.GetRequiredService<TodoService>();
             service.CompleteTodo(item.Id);
+        }
+
+        private void EditTodoItem(TodoItem todo)
+        {
+            var inputDialog = new EditTodoDialog(todo.Content);
+            if (inputDialog.ShowDialog() == true)
+            {
+                var newText = inputDialog.NewText;
+                var service = App.ServiceProvider.GetRequiredService<TodoService>();
+                service.UpdateTodo(todo.Id, newText);
+                RefreshWindow();
+            }
         }
 
         #region 用來模擬 placeholder 行為

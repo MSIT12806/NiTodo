@@ -56,7 +56,7 @@
                 </DockPanel>
 
             <StackPanel x:Name="TodoListPanel" Margin="10,50,10,10">
-                <!-- 這裡是未來的待辦清單 -->
+                <!-- 這裡是待辦清單 -->
             </StackPanel>
             </StackPanel>
 
