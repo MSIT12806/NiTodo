@@ -33,7 +33,8 @@ namespace NiTodo.Desktop
     public partial class ListWindow : Window
     {
         TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
-        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false);
+        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false).Where(i=>(ShowTodayCheckBox.IsChecked?? false) ? (i.PlannedDate == DateTime.Today) : true).ToList();
+        private HashSet<string> checkedTags = new HashSet<string>();
         public ListWindow()
         {
             InitializeComponent();
@@ -104,9 +105,19 @@ namespace NiTodo.Desktop
             TodoListPanel.Children.Clear();
 
             // 把每一個待辦項目加進畫面
-            foreach (var todo in todos)
+            if (checkedTags.Count > 0)
             {
-                AddToPanel(todo);
+                foreach (var todo in todos.Where(i => i.Tags.Any(t => checkedTags.Contains(t))))
+                {
+                    AddToPanel(todo);
+                }
+            }
+            else
+            {
+                foreach (var todo in todos)
+                {
+                    AddToPanel(todo);
+                }
             }
 
             RenderTagFilters();
@@ -131,6 +142,7 @@ namespace NiTodo.Desktop
                     Tag = tag,
                     Margin = new Thickness(5, 0, 0, 0)
                 };
+                cb.IsChecked = checkedTags.Contains(tag);
                 cb.Checked += FilterChanged;
                 cb.Unchecked += FilterChanged;
                 FilterPanel.Children.Add(cb);
@@ -186,6 +198,20 @@ namespace NiTodo.Desktop
         #region Search Area
         private void FilterChanged(object sender, RoutedEventArgs e)
         {
+            var checkBox = (CheckBox)sender;
+            var exceptCheckContent = new string[] { "已完成", "今天" };
+            if(exceptCheckContent.Contains(checkBox.Content as string) == false)
+            {
+                if (checkBox.IsChecked == true)
+                {
+                    checkedTags.Add(checkBox.Content as string);
+                }
+                else
+                {
+                    checkedTags.Remove(checkBox.Content as string);
+                }
+            }
+
             RefreshWindow();
         }
 

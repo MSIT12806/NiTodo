@@ -9,7 +9,7 @@
 
         <!-- 預計執行日期 -->
         <TextBlock Text="預計執行日期" Margin="0,0,0,5"/>
-        <DatePicker x:Name="PlannedDatePicker" Margin="0,0,0,10"/>
+        <DatePicker x:Name="PlannedDatePicker" SelectedDateChanged="PlannedDatePicker_SelectedDateChanged" Margin="0,0,0,10"/>
 
         <!-- Tag 輸入區 -->
         <TextBlock Text="標籤 Tags" Margin="0,0,0,5"/>
