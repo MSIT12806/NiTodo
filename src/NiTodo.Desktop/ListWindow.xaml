@@ -61,7 +61,8 @@
                  Text=""
                  Tag="新增代辦事項"
                  GotFocus="NewTodoTextBox_GotFocus"
-                 LostFocus="NewTodoTextBox_LostFocus"/>
+                 LostFocus="NewTodoTextBox_LostFocus"
+                             KeyDown="NewTodoTextBox_KeyDown"/>
                     <Button Content="新增"
                 Width="60"
                 Height="30"

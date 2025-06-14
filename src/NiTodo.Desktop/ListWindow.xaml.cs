@@ -33,7 +33,7 @@ namespace NiTodo.Desktop
     public partial class ListWindow : Window
     {
         TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
-        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false).Where(i=>(ShowTodayCheckBox.IsChecked?? false) ? (i.PlannedDate == DateTime.Today) : true).ToList();
+        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false).Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? (i.PlannedDate == DateTime.Today) : true).ToList();
         private HashSet<string> checkedTags = new HashSet<string>();
         public ListWindow()
         {
@@ -211,7 +211,7 @@ namespace NiTodo.Desktop
         {
             var checkBox = (CheckBox)sender;
             var exceptCheckContent = new string[] { "已完成", "今天" };
-            if(exceptCheckContent.Contains(checkBox.Content as string) == false)
+            if (exceptCheckContent.Contains(checkBox.Content as string) == false)
             {
                 if (checkBox.IsChecked == true)
                 {
@@ -266,7 +266,22 @@ namespace NiTodo.Desktop
         }
         #endregion
 
+        #region 新增待辦項目
+
         private void AddTodoButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddTodoItem();
+        }
+        private void NewTodoTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddTodoItem();
+                e.Handled = true; // 避免系統音效或額外事件
+            }
+        }
+
+        private void AddTodoItem()
         {
             string content = NewTodoTextBox.Text.Trim();
 
@@ -279,5 +294,7 @@ namespace NiTodo.Desktop
 
             NewTodoTextBox.Text = ""; // 清空輸入框
         }
+
+        #endregion
     }
 }
