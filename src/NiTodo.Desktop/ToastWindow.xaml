@@ -1,0 +1,15 @@
+﻿<Window x:Class="NiTodo.Desktop.ToastWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Width="200" Height="50"
+        ResizeMode="NoResize"
+        Loaded="Window_Loaded">
+    <Border Background="#CC333333" CornerRadius="8" Padding="10">
+        <TextBlock x:Name="MessageTextBlock" Foreground="White" FontSize="14"/>
+    </Border>
+</Window>

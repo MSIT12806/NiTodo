@@ -162,6 +162,9 @@ namespace NiTodo.Desktop
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 0, 10, 0)
             };
+            // 綁定 CheckBox
+            checkBox.IsChecked = todo.IsCompleted;
+            checkBox.Checked += async (s, e) => await OnTodoItemChecked(todo);
 
             var todoTextBlock = new TextBlock
             {
@@ -169,27 +172,35 @@ namespace NiTodo.Desktop
                 FontSize = 16,
                 Margin = new Thickness(0, 5, 0, 5)
             };
-
             todoTextBlock.MouseDown += (s, e) =>
             {
+                // double click
                 if (e.ClickCount == 2)
                 {
-                    EditTodoItem(todo);
+                    Clipboard.SetText(todo.Content);
+                    ToastManager.ShowToast($"{todo.Content} 已複製");
                 }
             };
-
-            // 綁定 CheckBox
-            checkBox.IsChecked = todo.IsCompleted;
-            checkBox.Checked += async (s, e) => await OnTodoItemChecked(todo);
-
             // 綁定刪除線
             if (todo.IsCompleted)
             {
                 todoTextBlock.TextDecorations = TextDecorations.Strikethrough;
             }
 
+            // 加入「編輯」按鈕
+            var editButton = new Button
+            {
+                Content = "編輯",
+                Margin = new Thickness(10, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(5, 2, 5, 2),
+            };
+            editButton.Click += (s, e) => EditTodoItem(todo);
+
+            // 加入所有元素到 stack
             stack.Children.Add(checkBox);
             stack.Children.Add(todoTextBlock);
+            stack.Children.Add(editButton);
 
             TodoListPanel.Children.Add(stack);
         }
