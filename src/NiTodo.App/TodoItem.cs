@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NiTodo.App
 {
@@ -8,7 +9,19 @@ namespace NiTodo.App
         public string Id { get; set; }
         public string Content { get; set; }
         public DateTime? PlannedDate { get; set; }
-        public HashSet<string> Tags { get; set; } = new HashSet<string>();
+        public IReadOnlyList<string> Tags
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Content)) return Array.Empty<string>();
+
+                var parts = Content.Split('-');
+
+                if (parts.Length <= 1) return Array.Empty<string>();
+
+                return parts.Take(parts.Length - 1).ToList();
+            }
+        }
         public DateTime? CompleteDateTime { get; set; }
         public void Complete()
         {
@@ -38,27 +51,6 @@ namespace NiTodo.App
                 throw new ArgumentException("New content cannot be empty.", nameof(newContent));
             }
             Content = newContent;
-        }
-
-        public void AddTag(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag))
-            {
-                throw new ArgumentException("Tag cannot be empty.", nameof(tag));
-            }
-            if (!Tags.Contains(tag))
-            {
-                Tags.Add(tag);
-            }
-        }
-
-        public void RemoveTag(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag))
-            {
-                throw new ArgumentException("Tag cannot be empty.", nameof(tag));
-            }
-            Tags.Remove(tag);
         }
 
         public void SetPlannedDate(DateTime plannedDate)

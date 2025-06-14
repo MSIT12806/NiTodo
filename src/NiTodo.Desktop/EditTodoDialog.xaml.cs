@@ -50,31 +50,6 @@ namespace NiTodo.Desktop
             TodoItem.PlannedDate = PlannedDatePicker.SelectedDate;
         }
 
-        private void AddTag_Click(object sender, RoutedEventArgs e)
-        {
-            var tag = TagInputTextBox.Text.Trim();
-            if (!string.IsNullOrEmpty(tag) && !TodoItem.Tags.Contains(tag))
-            {
-                AddTag(tag);
-                TagInputTextBox.Text = "";
-            }
-        }
-        private void AddTag(string tag)
-        {
-            if (TodoItem.Tags.Add(tag)) // HashSet.Add() return true 表示成功加入
-            {
-                RenderTags();
-            }
-        }
-
-        private void DeleteTag_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string tag && TodoItem.Tags.Remove(tag))
-            {
-                RenderTags();
-            }
-        }
-
         private void RenderTags()
         {
             TagListPanel.Children.Clear();
@@ -92,19 +67,8 @@ namespace NiTodo.Desktop
                 var panel = new StackPanel { Orientation = Orientation.Horizontal };
 
                 var tagText = new TextBlock { Text = tag };
-                var deleteBtn = new Button
-                {
-                    Content = "X",
-                    Width = 16,
-                    Height = 16,
-                    FontSize = 10,
-                    Margin = new Thickness(5, 0, 0, 0),
-                    Tag = tag
-                };
-                deleteBtn.Click += DeleteTag_Click;
-
+               
                 panel.Children.Add(tagText);
-                panel.Children.Add(deleteBtn);
                 border.Child = panel;
 
                 TagListPanel.Children.Add(border);

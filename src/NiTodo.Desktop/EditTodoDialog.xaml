@@ -11,13 +11,6 @@
         <TextBlock Text="預計執行日期" Margin="0,0,0,5"/>
         <DatePicker x:Name="PlannedDatePicker" SelectedDateChanged="PlannedDatePicker_SelectedDateChanged" Margin="0,0,0,10"/>
 
-        <!-- Tag 輸入區 -->
-        <TextBlock Text="標籤 Tags" Margin="0,0,0,5"/>
-        <DockPanel LastChildFill="False" Margin="0,0,0,10">
-            <TextBox x:Name="TagInputTextBox" Width="200" Margin="0,0,10,0"/>
-            <Button Content="加入" Width="60" Click="AddTag_Click"/>
-        </DockPanel>
-
         <!-- 顯示目前的 Tags -->
         <WrapPanel x:Name="TagListPanel" Margin="0,0,0,10" />
 
