@@ -5,7 +5,7 @@
     <StackPanel Margin="10">
         <!-- 代辦內容輸入 -->
         <TextBlock Text="待辦事項內容" Margin="0,0,0,5"/>
-        <TextBox x:Name="ContentEditor" Margin="0,0,0,10" />
+        <TextBox x:Name="ContentEditor" TextChanged="EditTextBox_TextChanged" Margin="0,0,0,10" />
 
         <!-- 預計執行日期 -->
         <TextBlock Text="預計執行日期" Margin="0,0,0,5"/>
