@@ -33,7 +33,16 @@ namespace NiTodo.Desktop
     public partial class ListWindow : Window
     {
         TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
-        private List<TodoItem> todos => service.ShowTodo(ShowCompletedCheckBox.IsChecked ?? false).Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? (i.PlannedDate == DateTime.Today) : true).ToList();
+        private List<TodoItem> todos => service
+            .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false)
+            .Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? IsToday(i) : true).ToList();
+
+        private static bool IsToday(TodoItem i)
+        {
+            // 如果 PlannedDate 為 null，則視為今天
+            return ((i.PlannedDate ?? DateTime.Today) == DateTime.Today);
+        }
+
         private HashSet<string> checkedTags = new HashSet<string>();
         public ListWindow()
         {
