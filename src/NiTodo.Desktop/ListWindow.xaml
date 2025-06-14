@@ -8,7 +8,9 @@
         WindowStyle="None" 
         AllowsTransparency="True" 
         Background="White"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResizeWithGrip"
+        SizeToContent="Height"
+        MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}">
     <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8">
         <Grid>
             <!-- 自訂標題列 -->
@@ -17,7 +19,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                
+
                 <!-- 左邊是 App 名稱 -->
                 <TextBlock Text="NiToDo" FontSize="16" Margin="10,0" VerticalAlignment="Center" Grid.Column="0"  />
 
@@ -36,15 +38,20 @@
                 </StackPanel>
 
             </Grid>
-            <StackPanel Margin="10,50,10,10" Orientation="Vertical">
+            <Grid Margin="10,50,10,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
                 <!-- 篩選區塊 -->
-                <WrapPanel x:Name="FilterPanel" Margin="0,0,0,10">
+                <WrapPanel x:Name="FilterPanel" Margin="0,0,0,10" Grid.Row="0">
                     <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
                     <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
                     <!-- Tag checkboxes 將由程式碼動態加入 -->
                 </WrapPanel>
                 <!-- 輸入區 -->
-                <DockPanel LastChildFill="True" Margin="0,0,0,10">
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,0,0,10">
                     <TextBox x:Name="NewTodoTextBox"
                  Width="300"
                  VerticalAlignment="Center"
@@ -60,11 +67,12 @@
                 Height="30"
                 Click="AddTodoButton_Click" />
                 </DockPanel>
-
-            <StackPanel x:Name="TodoListPanel" Margin="10,50,10,10">
-                <!-- 這裡是待辦清單 -->
-            </StackPanel>
-            </StackPanel>
+                <ScrollViewer  Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0" MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}">
+                    <StackPanel x:Name="TodoListPanel" Margin="0,0,0,0">
+                        <!-- 這裡是待辦清單 -->
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
 
         </Grid>
     </Border>
