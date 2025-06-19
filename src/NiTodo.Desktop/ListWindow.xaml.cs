@@ -222,7 +222,11 @@ namespace NiTodo.Desktop
             TodoListPanel.Children.Add(stack);
 
             var now = DateTime.Now;
-            if (todo.PlannedDate.HasValue && now >= todo.PlannedDate.Value && now < todo.PlannedDate.Value.AddMinutes(5))
+            if (todo.WillExpireInNext(10))
+            {
+                stack.Background = new SolidColorBrush(Color.FromRgb(255, 255, 0)); // LightYellow
+            }
+            if (todo.IsExpired())
             {
                 stack.Background = new SolidColorBrush(Color.FromRgb(255, 182, 193)); // LightPink
             }
@@ -272,7 +276,7 @@ namespace NiTodo.Desktop
 
             foreach (var todo in todoList) {
                 var now = DateTime.Now;
-                if (todo.PlannedDate.HasValue && now >= todo.PlannedDate.Value && now < todo.PlannedDate.Value.AddMinutes(1))
+                if (todo.IsExpired() && todo.WasExpiredBefore(1))
                     ToastManager.ShowToast($"{todo.Content} 已到期！");
             }
         }

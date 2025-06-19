@@ -38,12 +38,10 @@ namespace NiTodo.App
             var timeSpan = dt - completeDateTime;
             return timeSpan.TotalSeconds > 5;
         }
-
         public void Uncomplete()
         {
             CompleteDateTime = null;
         }
-
         public void SetContent(string newContent)
         {
             if (string.IsNullOrWhiteSpace(newContent))
@@ -52,7 +50,6 @@ namespace NiTodo.App
             }
             Content = newContent;
         }
-
         public void SetPlannedDate(DateTime plannedDate)
         {
             if (plannedDate < DateTime.Now)
@@ -60,6 +57,38 @@ namespace NiTodo.App
                 throw new ArgumentException("Planned date cannot be in the past.", nameof(plannedDate));
             }
             PlannedDate = plannedDate;
+        }
+        public bool IsExpired()
+        {
+            DateTime currentTime = DateTime.Now;
+
+            if (PlannedDate.HasValue == false)
+            {
+                return false;
+            }
+            return PlannedDate.Value < currentTime;
+        }
+        public bool WasExpiredBefore(int minute = 10)
+        {
+            if(this.IsExpired() == false)
+            {
+                return false;
+            }
+
+            DateTime currentTime = DateTime.Now;
+            var timeSpan = currentTime - PlannedDate.Value;
+            return timeSpan.TotalMinutes > minute;
+        }
+        public bool WillExpireInNext(int minute = 10)
+        {
+            DateTime currentTime = DateTime.Now;
+
+            if (PlannedDate.HasValue == false)
+            {
+                return false;
+            }
+            var timeSpan = PlannedDate.Value - currentTime;
+            return timeSpan.TotalMinutes <= minute && timeSpan.TotalMinutes > 0;
         }
     }
 }
