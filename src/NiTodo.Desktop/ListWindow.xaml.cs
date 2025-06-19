@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace NiTodo.Desktop
 {
@@ -33,7 +34,8 @@ namespace NiTodo.Desktop
     public partial class ListWindow : Window
     {
         TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
-        private List<TodoItem> todos => service
+        private List<TodoItem> todoList => service.ShowTodo().ToList();
+        private List<TodoItem> todoListForShow => service
             .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false)
             .Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? IsToday(i) : true).ToList();
 
@@ -44,6 +46,7 @@ namespace NiTodo.Desktop
         }
 
         private HashSet<string> checkedTags = new HashSet<string>();
+        private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
         public ListWindow()
         {
             InitializeComponent();
@@ -54,6 +57,11 @@ namespace NiTodo.Desktop
             domainEventDispatcher.Register(refreshWindowHandler);
 
             RefreshWindow(); // 初始化畫面
+
+            // 啟動定時器
+            _highlightTimer.Interval = TimeSpan.FromSeconds(5);
+            _highlightTimer.Tick += HighlightDueTodos;
+            _highlightTimer.Start();
         }
 
         #region 自訂標題列
@@ -116,14 +124,14 @@ namespace NiTodo.Desktop
             // 把每一個待辦項目加進畫面
             if (checkedTags.Count > 0)
             {
-                foreach (var todo in todos.Where(i => i.Tags.Any(t => checkedTags.Contains(t))))
+                foreach (var todo in todoListForShow.Where(i => i.Tags.Any(t => checkedTags.Contains(t))))
                 {
                     AddToPanel(todo);
                 }
             }
             else
             {
-                foreach (var todo in todos)
+                foreach (var todo in todoListForShow)
                 {
                     AddToPanel(todo);
                 }
@@ -138,7 +146,7 @@ namespace NiTodo.Desktop
             while (FilterPanel.Children.Count > 2)
                 FilterPanel.Children.RemoveAt(2);
 
-            var tags = todos
+            var tags = todoListForShow
                 .SelectMany(t => t.Tags)
                 .Distinct()
                 .OrderBy(t => t);
@@ -212,6 +220,12 @@ namespace NiTodo.Desktop
             stack.Children.Add(editButton);
 
             TodoListPanel.Children.Add(stack);
+
+            var now = DateTime.Now;
+            if (todo.PlannedDate.HasValue && now >= todo.PlannedDate.Value && now < todo.PlannedDate.Value.AddMinutes(5))
+            {
+                stack.Background = new SolidColorBrush(Color.FromRgb(255, 182, 193)); // LightPink
+            }
         }
         #endregion
 
@@ -249,6 +263,17 @@ namespace NiTodo.Desktop
             {
                 service.UpdateTodo(todo);
                 RefreshWindow();
+            }
+        }
+
+        private void HighlightDueTodos(object sender, EventArgs e)
+        {
+            RefreshWindow();
+
+            foreach (var todo in todoList) {
+                var now = DateTime.Now;
+                if (todo.PlannedDate.HasValue && now >= todo.PlannedDate.Value && now < todo.PlannedDate.Value.AddMinutes(1))
+                    ToastManager.ShowToast($"{todo.Content} 已到期！");
             }
         }
 

@@ -18,7 +18,7 @@ namespace NiTodo.Desktop
     /// <summary>
     /// EditTodoDialog.xaml 的互動邏輯
     /// </summary>
-    public partial class EditTodoDialog : Window
+    public partial class EditTodoDialog : MahApps.Metro.Controls.MetroWindow
     {
         TodoItem TodoItem { get; set; }
 
@@ -37,6 +37,7 @@ namespace NiTodo.Desktop
         {
             ContentEditor.Text = TodoItem.Content;
             PlannedDatePicker.SelectedDate = TodoItem.PlannedDate;
+            PlannedTimePicker.SelectedDateTime = TodoItem.PlannedDate?.TimeOfDay == TimeSpan.Zero ? null : TodoItem.PlannedDate;
             RenderTags(); // 渲染標籤
         }
 
@@ -47,7 +48,21 @@ namespace NiTodo.Desktop
 
         private void PlannedDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            TodoItem.PlannedDate = PlannedDatePicker.SelectedDate;
+            if (PlannedDatePicker.SelectedDate.HasValue)
+            {
+                var currentTime = TodoItem.PlannedDate?.TimeOfDay ?? TimeSpan.Zero;
+                TodoItem.PlannedDate = PlannedDatePicker.SelectedDate.Value.Date + currentTime;
+            }
+        }
+
+        private void PlannedTimePicker_SelectedDateTimeChanged(object sender, RoutedPropertyChangedEventArgs<DateTime?> e)
+        {
+            if (PlannedTimePicker.SelectedDateTime.HasValue)
+            {
+                var currentDate = TodoItem.PlannedDate?.Date ?? DateTime.Today;// 如果 PlannedDate 為 null，則使用今天的日期
+                var newTime = PlannedTimePicker.SelectedDateTime.Value.TimeOfDay;
+                TodoItem.PlannedDate = currentDate + newTime;
+            }
         }
 
         private void RenderTags()
