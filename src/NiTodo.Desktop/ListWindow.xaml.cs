@@ -42,7 +42,7 @@ namespace NiTodo.Desktop
         private static bool IsToday(TodoItem i)
         {
             // 如果 PlannedDate 為 null，則視為今天
-            return ((i.PlannedDate ?? DateTime.Today) == DateTime.Today);
+            return ((i.PlannedDate ?? DateTime.Today).Date == DateTime.Today);
         }
 
         private HashSet<string> checkedTags = new HashSet<string>();
@@ -198,11 +198,20 @@ namespace NiTodo.Desktop
                     ToastManager.ShowToast($"{todo.Content} 已複製");
                 }
             };
-            // 綁定刪除線
             if (todo.IsCompleted)
             {
+                // 綁定刪除線
                 todoTextBlock.TextDecorations = TextDecorations.Strikethrough;
             }
+
+            var dateTimeBlock = new TextBlock
+            {
+                Text = todo.PlannedDate.HasValue ? todo.PlannedDate.Value.ToString("yyyy-MM-dd HH:mm") : "",
+                Margin = new Thickness(10, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 10,
+                Foreground = Brushes.Gray
+            };
 
             // 加入「編輯」按鈕
             var editButton = new Button
@@ -217,6 +226,10 @@ namespace NiTodo.Desktop
             // 加入所有元素到 stack
             stack.Children.Add(checkBox);
             stack.Children.Add(todoTextBlock);
+            if (todo.PlannedDate.HasValue && todo.PlannedDate.Value.Date == DateTime.Today)
+            {
+                stack.Children.Add(dateTimeBlock);
+            }
             stack.Children.Add(editButton);
 
             TodoListPanel.Children.Add(stack);
@@ -274,7 +287,8 @@ namespace NiTodo.Desktop
         {
             RefreshWindow();
 
-            foreach (var todo in todoList) {
+            foreach (var todo in todoList)
+            {
                 var now = DateTime.Now;
                 if (todo.IsExpired() && todo.WasExpiredBefore(1))
                     ToastManager.ShowToast($"{todo.Content} 已到期！");
