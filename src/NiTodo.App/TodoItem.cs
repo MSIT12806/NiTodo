@@ -13,11 +13,13 @@ namespace NiTodo.App
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(Content)) return Array.Empty<string>();
+                if (string.IsNullOrWhiteSpace(Content))
+                    return Array.Empty<string>();
 
                 var parts = Content.Split('-');
 
-                if (parts.Length <= 1) return Array.Empty<string>();
+                if (parts.Length <= 1)
+                    return Array.Empty<string>();
 
                 return parts.Take(parts.Length - 1).ToList();
             }
@@ -70,14 +72,14 @@ namespace NiTodo.App
         }
         public bool WasExpiredBefore(int minute = 10)
         {
-            if(this.IsExpired() == false)
+            if (IsExpired() == false)
             {
                 return false;
             }
 
             DateTime currentTime = DateTime.Now;
             var timeSpan = currentTime - PlannedDate.Value;
-            return timeSpan.TotalMinutes > minute;
+            return timeSpan.TotalMinutes < minute;
         }
         public bool WillExpireInNext(int minute = 10)
         {
