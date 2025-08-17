@@ -54,7 +54,9 @@ namespace NiTodo.Desktop
             return ((i.PlannedDate ?? DateTime.Today).Date == DateTime.Today);
         }
 
-        private HashSet<string> checkedTags = new HashSet<string>();
+    // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
+    private enum TagFilterState { Ignore, Include, Exclude }
+    private readonly Dictionary<string, TagFilterState> _tagStates = new();
         private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
         public ListWindow()
         {
@@ -130,12 +132,14 @@ namespace NiTodo.Desktop
             // 清空目前 StackPanel 裡的動態內容（保留第一個提示文字）
             TodoListPanel.Children.Clear();
 
-            // 準備集合 (Tag 過濾)
+            // 準備集合
             IEnumerable<TodoItem> items = todoListForShow;
-            if (checkedTags.Count > 0)
-            {
-                items = items.Where(i => i.Tags.Any(t => checkedTags.Contains(t)));
-            }
+            var includeTags = _tagStates.Where(kv => kv.Value == TagFilterState.Include).Select(kv => kv.Key).ToList();
+            var excludeTags = _tagStates.Where(kv => kv.Value == TagFilterState.Exclude).Select(kv => kv.Key).ToHashSet();
+            if (includeTags.Any())
+                items = items.Where(i => i.Tags.Any(t => includeTags.Contains(t)));
+            if (excludeTags.Any())
+                items = items.Where(i => !i.Tags.Any(t => excludeTags.Contains(t)));
 
             // 排序
             items = _currentSort switch
@@ -174,11 +178,19 @@ namespace NiTodo.Desktop
                 {
                     Content = tag,
                     Tag = tag,
-                    Margin = new Thickness(5, 0, 0, 0)
+                    Margin = new Thickness(5, 0, 0, 0),
+                    IsThreeState = true
                 };
-                cb.IsChecked = checkedTags.Contains(tag);
-                cb.Checked += FilterChanged;
-                cb.Unchecked += FilterChanged;
+                if (_tagStates.TryGetValue(tag, out var state))
+                {
+                    cb.IsChecked = state switch
+                    {
+                        TagFilterState.Include => true,
+                        TagFilterState.Exclude => null, // Indeterminate 顯示為排除
+                        _ => false
+                    };
+                }
+                cb.Click += TagCheckBox_Click;
                 FilterPanel.Children.Add(cb);
             }
         }
@@ -269,19 +281,24 @@ namespace NiTodo.Desktop
         #region Search Area
         private void FilterChanged(object sender, RoutedEventArgs e)
         {
-            var checkBox = (CheckBox)sender;
-            var exceptCheckContent = new string[] { "已完成", "今天" };
-            if (exceptCheckContent.Contains(checkBox.Content as string) == false)
-            {
-                if (checkBox.IsChecked == true)
-                {
-                    checkedTags.Add(checkBox.Content as string);
-                }
-                else
-                {
-                    checkedTags.Remove(checkBox.Content as string);
-                }
-            }
+            // 處理固定的二態篩選 (已完成 / 今天)
+            RefreshWindow();
+        }
+
+        private void TagCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not CheckBox cb) return;
+            var tag = cb.Content as string;
+            if (string.IsNullOrWhiteSpace(tag)) return;
+
+            TagFilterState state = TagFilterState.Ignore;
+            if (cb.IsChecked == true) state = TagFilterState.Include;
+            else if (cb.IsChecked == null) state = TagFilterState.Exclude;
+
+            if (state == TagFilterState.Ignore)
+                _tagStates.Remove(tag);
+            else
+                _tagStates[tag] = state;
 
             RefreshWindow();
         }
