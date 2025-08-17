@@ -170,6 +170,30 @@ namespace NiTodo.App
             IncludeTags.Remove(tag);
             ExcludeTags.Remove(tag);
         }
+
+        public IEnumerable<string> GetAllTags()
+        {
+            return GetAllTodos()
+                 .SelectMany(t => t.Tags)
+                 .Distinct()
+                 .OrderBy(t => t);
+        }
+
+        public TagFilterState GetTagFilterState(string tag)
+        {
+            if (IncludeTags.Contains(tag))
+            {
+                return TagFilterState.Include;
+            }
+            else if (ExcludeTags.Contains(tag))
+            {
+                return TagFilterState.Exclude;
+            }
+            else
+            {
+                return TagFilterState.Ignore;
+            }
+        }
     }
     public enum SortMode
     {

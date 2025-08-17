@@ -148,10 +148,7 @@ namespace NiTodo.Desktop
             while (FilterPanel.Children.Count > 2)
                 FilterPanel.Children.RemoveAt(2);
 
-            var tags = todoListForShow
-                .SelectMany(t => t.Tags)
-                .Distinct()
-                .OrderBy(t => t);
+            var tags = niTodoApp.GetAllTags();
 
             foreach (var tag in tags)
             {
@@ -162,15 +159,13 @@ namespace NiTodo.Desktop
                     Margin = new Thickness(5, 0, 0, 0),
                     IsThreeState = true
                 };
-                if (_tagStates.TryGetValue(tag, out var state))
+                var state = niTodoApp.GetTagFilterState(tag);
+                cb.IsChecked = state switch
                 {
-                    cb.IsChecked = state switch
-                    {
-                        TagFilterState.Include => true,
-                        TagFilterState.Exclude => null, // Indeterminate 顯示為排除
-                        _ => false
-                    };
-                }
+                    TagFilterState.Include => true,
+                    TagFilterState.Exclude => null, // Indeterminate 顯示為排除
+                    _ => false
+                };
                 cb.Click += TagCheckBox_Click;
                 FilterPanel.Children.Add(cb);
             }
