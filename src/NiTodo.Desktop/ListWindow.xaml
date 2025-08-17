@@ -44,12 +44,30 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <!-- 篩選區塊 -->
-                <WrapPanel x:Name="FilterPanel" Margin="0,0,0,10" Grid.Row="0">
-                    <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
-                    <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
-                    <!-- Tag checkboxes 將由程式碼動態加入 -->
-                </WrapPanel>
+                <!-- 篩選列與排序列分開：左=篩選 右=排序 -->
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 篩選區 (Tag 動態加入) -->
+                    <WrapPanel x:Name="FilterPanel" Grid.Column="0">
+                        <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
+                        <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
+                        <!-- Tag checkboxes 將由程式碼動態加入 -->
+                    </WrapPanel>
+
+                    <!-- 排序區 -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock Text="排序:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <ComboBox x:Name="SortComboBox" Width="110" SelectionChanged="SortComboBox_SelectionChanged">
+                            <ComboBoxItem Content="文字" Tag="Content" IsSelected="True"/>
+                            <ComboBoxItem Content="建立日期" Tag="Created"/>
+                            <ComboBoxItem Content="預計時間" Tag="Planned"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
                 <!-- 輸入區 -->
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,0,0,10">
                     <TextBox x:Name="NewTodoTextBox"
@@ -69,8 +87,9 @@
                 Click="AddTodoButton_Click" />
                 </DockPanel>
                 <ScrollViewer  Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0" MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}">
+                    <!-- 使用垂直 StackPanel，單筆內容改由 Grid 限制寬度並在程式碼側 TextWrapping -->
                     <StackPanel x:Name="TodoListPanel" Margin="0,0,0,0">
-                        <!-- 這裡是待辦清單 -->
+                        <!-- 待辦清單動態加入 -->
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

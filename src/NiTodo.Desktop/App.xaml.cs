@@ -26,6 +26,7 @@ namespace NiTodo.Desktop
             var serviceCollection = new ServiceCollection();
             // 註冊服務
             serviceCollection.AddSingleton<DomainEventDispatcher>();
+            serviceCollection.AddSingleton<ICopyContent, CopyContent>();
             serviceCollection.AddSingleton<ITodoRepository, FileTodoRepository>();
             serviceCollection.AddTransient<TodoService>();
 

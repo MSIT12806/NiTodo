@@ -9,6 +9,8 @@ namespace NiTodo.App
         public string Id { get; set; }
         public string Content { get; set; }
         public DateTime? PlannedDate { get; set; }
+    // 新增建立時間；舊資料可能沒有 -> nullable
+    public DateTime? CreatedAt { get; set; }
         public IReadOnlyList<string> Tags
         {
             get
@@ -91,6 +93,21 @@ namespace NiTodo.App
             }
             var timeSpan = PlannedDate.Value - currentTime;
             return timeSpan.TotalMinutes <= minute && timeSpan.TotalMinutes > 0;
+        }
+
+        public string GetContentWithoutPrefix()
+        {
+            if (string.IsNullOrWhiteSpace(Content))
+            {
+                return string.Empty;
+            }
+            var parts = Content.Split('-');
+            if (parts.Length <= 1)
+            {
+                return Content;
+            }
+            // 返回最後一個部分，這是沒有前綴的內容
+            return parts.Last().Trim();
         }
     }
 }

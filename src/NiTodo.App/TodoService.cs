@@ -1,6 +1,5 @@
 ﻿using DomainInfra;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,10 +9,16 @@ namespace NiTodo.App
     {
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
-        public TodoService(ITodoRepository todoRepository, DomainEventDispatcher domainEventDispatcher)
+        private readonly ICopyContent copyContent;
+        public TodoService(
+            ITodoRepository todoRepository,
+            DomainEventDispatcher domainEventDispatcher,
+            ICopyContent copyContent
+            )
         {
             _todoRepository = todoRepository;
             _domainEventDispatcher = domainEventDispatcher;
+            this.copyContent = copyContent ?? throw new ArgumentNullException(nameof(copyContent));
         }
 
         public void CancelCompleteTodo(string id)
@@ -78,7 +83,8 @@ namespace NiTodo.App
             var todoItem = new TodoItem
             {
                 Id = Guid.NewGuid().ToString(),
-                Content = todoContent
+                Content = todoContent,
+                CreatedAt = DateTime.Now
             };
             _todoRepository.Add(todoItem);
 
@@ -107,6 +113,12 @@ namespace NiTodo.App
         public void UpdateTodo(TodoItem todo)
         {
             _todoRepository.SaveChange(todo);
+        }
+
+        public void CopyContent(TodoItem todo)
+        {
+            var content = todo.GetContentWithoutPrefix();
+            copyContent.Copy(content);
         }
     }
 }

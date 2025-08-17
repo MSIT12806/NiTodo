@@ -50,8 +50,15 @@ namespace NiTodo.Desktop
         {
             if (PlannedDatePicker.SelectedDate.HasValue)
             {
+                // 保留原本時間（若無則設為 00:00）
                 var currentTime = TodoItem.PlannedDate?.TimeOfDay ?? TimeSpan.Zero;
                 TodoItem.PlannedDate = PlannedDatePicker.SelectedDate.Value.Date + currentTime;
+            }
+            else
+            {
+                // 使用者清空日期 => 取消整個預計時間設定
+                TodoItem.PlannedDate = null;
+                PlannedTimePicker.SelectedDateTime = null; // 同步清空時間
             }
         }
 
@@ -59,9 +66,18 @@ namespace NiTodo.Desktop
         {
             if (PlannedTimePicker.SelectedDateTime.HasValue)
             {
-                var currentDate = TodoItem.PlannedDate?.Date ?? DateTime.Today;// 如果 PlannedDate 為 null，則使用今天的日期
+                // 若目前沒有日期但設定了時間，維持原行為：以今天作為日期
+                var currentDate = TodoItem.PlannedDate?.Date ?? DateTime.Today;
                 var newTime = PlannedTimePicker.SelectedDateTime.Value.TimeOfDay;
                 TodoItem.PlannedDate = currentDate + newTime;
+            }
+            else
+            {
+                // 清空時間 => 若還有日期則將時間歸 00:00，並視為「只有日期」；若沒有日期則保持 null
+                if (TodoItem.PlannedDate.HasValue)
+                {
+                    TodoItem.PlannedDate = TodoItem.PlannedDate.Value.Date; // 時間 00:00
+                }
             }
         }
 

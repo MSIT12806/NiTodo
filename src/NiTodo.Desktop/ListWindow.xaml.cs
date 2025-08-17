@@ -39,6 +39,15 @@ namespace NiTodo.Desktop
             .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false)
             .Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? IsToday(i) : true).ToList();
 
+        private enum SortMode
+        {
+            Content,
+            Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
+            Planned
+        }
+
+        private SortMode _currentSort = SortMode.Content;
+
         private static bool IsToday(TodoItem i)
         {
             // 如果 PlannedDate 為 null，則視為今天
@@ -91,7 +100,6 @@ namespace NiTodo.Desktop
         {
             Close();
         }
-
         private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Opacity = e.NewValue;
@@ -101,7 +109,6 @@ namespace NiTodo.Desktop
         {
             Topmost = true;
         }
-
         private void TopmostCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             Topmost = false;
@@ -111,6 +118,8 @@ namespace NiTodo.Desktop
         #region Render Window
         public void RefreshWindow()
         {
+            if (TodoListPanel == null)
+                return; // 尚未初始化 XAML 元件時避免 NullReference
             if (!Dispatcher.CheckAccess())
             {
                 // 如果現在不是在 UI 執行緒，就切回 UI 執行緒執行
@@ -121,27 +130,35 @@ namespace NiTodo.Desktop
             // 清空目前 StackPanel 裡的動態內容（保留第一個提示文字）
             TodoListPanel.Children.Clear();
 
-            // 把每一個待辦項目加進畫面
+            // 準備集合 (Tag 過濾)
+            IEnumerable<TodoItem> items = todoListForShow;
             if (checkedTags.Count > 0)
             {
-                foreach (var todo in todoListForShow.Where(i => i.Tags.Any(t => checkedTags.Contains(t))))
-                {
-                    AddToPanel(todo);
-                }
+                items = items.Where(i => i.Tags.Any(t => checkedTags.Contains(t)));
             }
-            else
+
+            // 排序
+            items = _currentSort switch
             {
-                foreach (var todo in todoListForShow)
-                {
-                    AddToPanel(todo);
-                }
+                SortMode.Content => items.OrderBy(i => i.Content, StringComparer.CurrentCultureIgnoreCase),
+                SortMode.Planned => items.OrderBy(i => i.PlannedDate.HasValue ? 0 : 1) // 無預計時間放後面
+                                           .ThenBy(i => i.PlannedDate),
+                SortMode.Created => items.OrderBy(i => i.CreatedAt.HasValue ? 0 : 1)
+                                           .ThenBy(i => i.CreatedAt),
+                _ => items
+            };
+
+            foreach (var todo in items)
+            {
+                AddToPanel(todo);
             }
 
             RenderTagFilters();
         }
-
         private void RenderTagFilters()
         {
+            if (FilterPanel == null)
+                return;
             // 清掉舊的 tag checkbox（保留固定的前兩個）
             while (FilterPanel.Children.Count > 2)
                 FilterPanel.Children.RemoveAt(2);
@@ -165,83 +182,86 @@ namespace NiTodo.Desktop
                 FilterPanel.Children.Add(cb);
             }
         }
-
         private void AddToPanel(TodoItem todo)
         {
-            var stack = new StackPanel
+            // 建立容器 Grid：左邊固定寬度給 CheckBox，右邊內容區可換行
+            var grid = new Grid
             {
-                Orientation = Orientation.Horizontal,
                 Margin = new Thickness(0, 5, 0, 5)
             };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // checkbox
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // content
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // edit button
 
             var checkBox = new CheckBox
             {
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 10, 0)
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 3, 8, 0)
             };
-            // 綁定 CheckBox
             checkBox.IsChecked = todo.IsCompleted;
             checkBox.Checked += async (s, e) => await OnTodoItemChecked(todo);
+            Grid.SetColumn(checkBox, 0);
+
+            // 文字 + 日期再用一個 StackPanel，文字可換行
+            var contentPanel = new StackPanel { Orientation = Orientation.Vertical };
 
             var todoTextBlock = new TextBlock
             {
                 Text = todo.Content,
                 FontSize = 16,
-                Margin = new Thickness(0, 5, 0, 5)
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 2)
             };
             todoTextBlock.MouseDown += (s, e) =>
             {
-                // double click
                 if (e.ClickCount == 2)
                 {
-                    Clipboard.SetText(todo.Content);
-                    ToastManager.ShowToast($"{todo.Content} 已複製");
+                    service.CopyContent(todo);
+                    ToastManager.ShowToast($"{todo.GetContentWithoutPrefix()} 已複製");
                 }
             };
             if (todo.IsCompleted)
             {
-                // 綁定刪除線
                 todoTextBlock.TextDecorations = TextDecorations.Strikethrough;
             }
 
-            var dateTimeBlock = new TextBlock
+            contentPanel.Children.Add(todoTextBlock);
+            if (todo.PlannedDate.HasValue)
             {
-                Text = todo.PlannedDate.HasValue ? todo.PlannedDate.Value.ToString("yyyy-MM-dd HH:mm") : "",
-                Margin = new Thickness(10, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 10,
-                Foreground = Brushes.Gray
-            };
+                var dateTimeBlock = new TextBlock
+                {
+                    Text = todo.PlannedDate.Value.ToString("yyyy-MM-dd HH:mm"),
+                    FontSize = 10,
+                    Foreground = Brushes.Gray,
+                    Margin = new Thickness(0, 0, 0, 0)
+                };
+                contentPanel.Children.Add(dateTimeBlock);
+            }
+            Grid.SetColumn(contentPanel, 1);
 
-            // 加入「編輯」按鈕
             var editButton = new Button
             {
                 Content = "編輯",
-                Margin = new Thickness(10, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(8, 0, 0, 0),
                 Padding = new Thickness(5, 2, 5, 2),
+                VerticalAlignment = VerticalAlignment.Top
             };
             editButton.Click += (s, e) => EditTodoItem(todo);
+            Grid.SetColumn(editButton, 2);
 
-            // 加入所有元素到 stack
-            stack.Children.Add(checkBox);
-            stack.Children.Add(todoTextBlock);
-            if (todo.PlannedDate.HasValue && todo.PlannedDate.Value.Date == DateTime.Today)
-            {
-                stack.Children.Add(dateTimeBlock);
-            }
-            stack.Children.Add(editButton);
+            grid.Children.Add(checkBox);
+            grid.Children.Add(contentPanel);
+            grid.Children.Add(editButton);
 
-            TodoListPanel.Children.Add(stack);
+            TodoListPanel.Children.Add(grid);
 
-            var now = DateTime.Now;
             if (todo.WillExpireInNext(10))
             {
-                stack.Background = new SolidColorBrush(Color.FromRgb(255, 255, 0)); // LightYellow
+                grid.Background = new SolidColorBrush(Color.FromRgb(255, 255, 0));
             }
             if (todo.IsExpired())
             {
-                stack.Background = new SolidColorBrush(Color.FromRgb(255, 182, 193)); // LightPink
+                grid.Background = new SolidColorBrush(Color.FromRgb(255, 182, 193));
             }
         }
         #endregion
@@ -266,13 +286,28 @@ namespace NiTodo.Desktop
             RefreshWindow();
         }
 
+        private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SortComboBox.SelectedItem is ComboBoxItem cbi)
+            {
+                var tag = cbi.Tag as string;
+                _currentSort = tag switch
+                {
+                    "Content" => SortMode.Content,
+                    "Created" => SortMode.Created,
+                    "Planned" => SortMode.Planned,
+                    _ => SortMode.Content
+                };
+                RefreshWindow();
+            }
+        }
+
         #endregion 
         private async Task OnTodoItemChecked(TodoItem item)
         {
             var service = App.ServiceProvider.GetRequiredService<TodoService>();
             service.CompleteTodo(item.Id);
         }
-
         private void EditTodoItem(TodoItem todo)
         {
             var inputDialog = new EditTodoDialog(todo);
@@ -282,7 +317,6 @@ namespace NiTodo.Desktop
                 RefreshWindow();
             }
         }
-
         private void HighlightDueTodos(object sender, EventArgs e)
         {
             RefreshWindow();
@@ -305,7 +339,6 @@ namespace NiTodo.Desktop
                 tb.Text = "";
             }
         }
-
         private void NewTodoTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var tb = sender as TextBox;
@@ -332,7 +365,6 @@ namespace NiTodo.Desktop
                 e.Handled = true; // 避免系統音效或額外事件
             }
         }
-
         private void AddTodoItem()
         {
             string content = NewTodoTextBox.Text.Trim();
