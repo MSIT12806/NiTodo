@@ -8,10 +8,12 @@ namespace NiTodo.App
 {
     public class NiTodoApp
     {
+        public TodoItem SelectedTodoItem;
         public SortMode CurrentSortMode = SortMode.Content;
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
         private readonly ICopyContent copyContent;
+
         public NiTodoApp(
             ITodoRepository todoRepository,
             DomainEventDispatcher domainEventDispatcher,

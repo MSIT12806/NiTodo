@@ -43,9 +43,8 @@ namespace NiTodo.Desktop
         private readonly Dictionary<string, TagFilterState> _tagStates = new();
         private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
         // 選取狀態：以 TodoId 保存，避免重繪後遺失
-        private string _selectedTodoId;
         private readonly Brush _selectedBrush = Brushes.DarkGray;
-        private readonly Dictionary<string, Grid> _todoGridMap = new();
+        private readonly Dictionary<TodoItem, Grid> _todoGridMap = new();
         public ListWindow()
         {
             InitializeComponent();
@@ -258,7 +257,7 @@ namespace NiTodo.Desktop
             grid.Children.Add(editButton);
 
             TodoListPanel.Children.Add(grid);
-            _todoGridMap[todo.Id] = grid;
+            _todoGridMap[todo] = grid;
 
             if (todo.WillExpireInNext(10))
             {
@@ -273,7 +272,7 @@ namespace NiTodo.Desktop
             grid.Tag = grid.Background;
 
             // 點擊選取
-            grid.MouseLeftButtonDown += (s, e) => SelectTodo(todo.Id);
+            grid.MouseLeftButtonDown += (s, e) => SelectTodo(todo);
         }
         #endregion
 
@@ -398,21 +397,22 @@ namespace NiTodo.Desktop
             NewTodoTextBox.Text = ""; // 清空輸入框
         }
 
-        private void SelectTodo(string todoId)
+        private void SelectTodo(TodoItem todo)
         {
-            if (string.IsNullOrEmpty(todoId))
+            if (todo == null)
                 return;
-            if (_selectedTodoId == todoId)
+
+            if (niTodoApp.SelectedTodoItem == todo)
                 return;
 
             // 還原前一個
-            if (!string.IsNullOrEmpty(_selectedTodoId) && _todoGridMap.TryGetValue(_selectedTodoId, out var oldGrid))
+            if (niTodoApp.SelectedTodoItem != null && _todoGridMap.TryGetValue(niTodoApp.SelectedTodoItem, out var oldGrid))
             {
                 oldGrid.Background = oldGrid.Tag as Brush;
             }
 
-            _selectedTodoId = todoId;
-            if (_todoGridMap.TryGetValue(todoId, out var grid))
+            niTodoApp.SelectedTodoItem = todo;
+            if (_todoGridMap.TryGetValue(todo, out var grid))
             {
                 grid.Background = _selectedBrush;
             }
@@ -420,11 +420,11 @@ namespace NiTodo.Desktop
 
         private void ReapplySelection()
         {
-            if (string.IsNullOrEmpty(_selectedTodoId))
+            if (niTodoApp.SelectedTodoItem == null)
                 return;
-            if (_todoGridMap.TryGetValue(_selectedTodoId, out var grid))
+
+            if (_todoGridMap.TryGetValue(niTodoApp.SelectedTodoItem, out var grid))
             {
-                // 確保 grid 原背景 Tag 正確（AddToPanel 已設定）
                 grid.Background = _selectedBrush;
             }
         }
