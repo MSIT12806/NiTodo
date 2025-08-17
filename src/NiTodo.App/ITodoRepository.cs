@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace NiTodo.App
@@ -47,7 +48,7 @@ namespace NiTodo.App
     public class FileTodoRepository : ITodoRepository
     {
         List<TodoItem> _todoItems = new List<TodoItem>();
-        readonly string _filePath = "todo.txt";
+        readonly string _filePath = Path.Combine("data", "todo.txt");
         public FileTodoRepository()
         {
             // 讀取檔案內容
@@ -64,6 +65,13 @@ namespace NiTodo.App
         }
         private void WriteToFile()
         {
+            // 確保資料夾存在
+            var directory = Path.GetDirectoryName(_filePath);
+            if (!string.IsNullOrEmpty(directory) && !System.IO.Directory.Exists(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            }
+
             // 將 _todoItems 轉換成 json 字串，然後存進檔案當中
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(_todoItems);
             System.IO.File.WriteAllText(_filePath, json);
