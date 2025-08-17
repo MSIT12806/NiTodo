@@ -33,18 +33,10 @@ namespace NiTodo.Desktop
     /// </summary>
     public partial class ListWindow : Window
     {
-        TodoService service = App.ServiceProvider.GetRequiredService<TodoService>();
-        private List<TodoItem> todoList => service.ShowTodo().ToList();
-        private List<TodoItem> todoListForShow => service
-            .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false)
-            .Where(i => (ShowTodayCheckBox.IsChecked ?? false) ? IsToday(i) : true).ToList();
+        NiTodoApp niTodoApp = App.ServiceProvider.GetRequiredService<NiTodoApp>();
+        private List<TodoItem> todoListForShow => niTodoApp
+            .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false, ShowTodayCheckBox.IsChecked ?? false);
 
-        private enum SortMode
-        {
-            Content,
-            Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
-            Planned
-        }
 
         private SortMode _currentSort = SortMode.Content;
 
@@ -54,10 +46,14 @@ namespace NiTodo.Desktop
             return ((i.PlannedDate ?? DateTime.Today).Date == DateTime.Today);
         }
 
-    // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
-    private enum TagFilterState { Ignore, Include, Exclude }
-    private readonly Dictionary<string, TagFilterState> _tagStates = new();
+        // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
+        private enum TagFilterState { Ignore, Include, Exclude }
+        private readonly Dictionary<string, TagFilterState> _tagStates = new();
         private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
+        // 選取狀態：以 TodoId 保存，避免重繪後遺失
+        private string _selectedTodoId;
+        private readonly Brush _selectedBrush = Brushes.DarkGray;
+        private readonly Dictionary<string, Grid> _todoGridMap = new();
         public ListWindow()
         {
             InitializeComponent();
@@ -129,8 +125,9 @@ namespace NiTodo.Desktop
                 return;
             }
 
-            // 清空目前 StackPanel 裡的動態內容（保留第一個提示文字）
+            // 清空目前 StackPanel 裡的動態內容
             TodoListPanel.Children.Clear();
+            _todoGridMap.Clear();
 
             // 準備集合
             IEnumerable<TodoItem> items = todoListForShow;
@@ -156,6 +153,8 @@ namespace NiTodo.Desktop
             {
                 AddToPanel(todo);
             }
+
+            ReapplySelection();
 
             RenderTagFilters();
         }
@@ -201,6 +200,7 @@ namespace NiTodo.Desktop
             {
                 Margin = new Thickness(0, 5, 0, 5)
             };
+            grid.DataContext = todo; // 後續可透過 DataContext 取得 todo
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // checkbox
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // content
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // edit button
@@ -228,7 +228,7 @@ namespace NiTodo.Desktop
             {
                 if (e.ClickCount == 2)
                 {
-                    service.CopyContent(todo);
+                    niTodoApp.CopyContent(todo);
                     ToastManager.ShowToast($"{todo.GetContentWithoutPrefix()} 已複製");
                 }
             };
@@ -266,6 +266,7 @@ namespace NiTodo.Desktop
             grid.Children.Add(editButton);
 
             TodoListPanel.Children.Add(grid);
+            _todoGridMap[todo.Id] = grid;
 
             if (todo.WillExpireInNext(10))
             {
@@ -275,6 +276,12 @@ namespace NiTodo.Desktop
             {
                 grid.Background = new SolidColorBrush(Color.FromRgb(255, 182, 193));
             }
+
+            // 記住原本背景（可能是 null / 黃 / 粉）供取消選取時還原
+            grid.Tag = grid.Background;
+
+            // 點擊選取
+            grid.MouseLeftButtonDown += (s, e) => SelectTodo(todo.Id);
         }
         #endregion
 
@@ -287,13 +294,17 @@ namespace NiTodo.Desktop
 
         private void TagCheckBox_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not CheckBox cb) return;
+            if (sender is not CheckBox cb)
+                return;
             var tag = cb.Content as string;
-            if (string.IsNullOrWhiteSpace(tag)) return;
+            if (string.IsNullOrWhiteSpace(tag))
+                return;
 
             TagFilterState state = TagFilterState.Ignore;
-            if (cb.IsChecked == true) state = TagFilterState.Include;
-            else if (cb.IsChecked == null) state = TagFilterState.Exclude;
+            if (cb.IsChecked == true)
+                state = TagFilterState.Include;
+            else if (cb.IsChecked == null)
+                state = TagFilterState.Exclude;
 
             if (state == TagFilterState.Ignore)
                 _tagStates.Remove(tag);
@@ -322,7 +333,7 @@ namespace NiTodo.Desktop
         #endregion 
         private async Task OnTodoItemChecked(TodoItem item)
         {
-            var service = App.ServiceProvider.GetRequiredService<TodoService>();
+            var service = App.ServiceProvider.GetRequiredService<NiTodoApp>();
             service.CompleteTodo(item.Id);
         }
         private void EditTodoItem(TodoItem todo)
@@ -330,17 +341,16 @@ namespace NiTodo.Desktop
             var inputDialog = new EditTodoDialog(todo);
             if (inputDialog.ShowDialog() == true)
             {
-                service.UpdateTodo(todo);
+                niTodoApp.UpdateTodo(todo);
                 RefreshWindow();
             }
         }
         private void HighlightDueTodos(object sender, EventArgs e)
         {
             RefreshWindow();
-
-            foreach (var todo in todoList)
+            var now = DateTime.Now;
+            foreach (var todo in niTodoApp.GetAllTodos())
             {
-                var now = DateTime.Now;
                 if (todo.IsExpired() && todo.WasExpiredBefore(1))
                     ToastManager.ShowToast($"{todo.Content} 已到期！");
             }
@@ -390,10 +400,41 @@ namespace NiTodo.Desktop
             if (string.IsNullOrWhiteSpace(content) || content == (string)NewTodoTextBox.Tag)
                 return;
 
-            var service = App.ServiceProvider.GetRequiredService<TodoService>();
+            var service = App.ServiceProvider.GetRequiredService<NiTodoApp>();
             service.CreateTodo(content);
 
             NewTodoTextBox.Text = ""; // 清空輸入框
+        }
+
+        private void SelectTodo(string todoId)
+        {
+            if (string.IsNullOrEmpty(todoId))
+                return;
+            if (_selectedTodoId == todoId)
+                return;
+
+            // 還原前一個
+            if (!string.IsNullOrEmpty(_selectedTodoId) && _todoGridMap.TryGetValue(_selectedTodoId, out var oldGrid))
+            {
+                oldGrid.Background = oldGrid.Tag as Brush;
+            }
+
+            _selectedTodoId = todoId;
+            if (_todoGridMap.TryGetValue(todoId, out var grid))
+            {
+                grid.Background = _selectedBrush;
+            }
+        }
+
+        private void ReapplySelection()
+        {
+            if (string.IsNullOrEmpty(_selectedTodoId))
+                return;
+            if (_todoGridMap.TryGetValue(_selectedTodoId, out var grid))
+            {
+                // 確保 grid 原背景 Tag 正確（AddToPanel 已設定）
+                grid.Background = _selectedBrush;
+            }
         }
 
         #endregion

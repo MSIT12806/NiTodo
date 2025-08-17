@@ -1,16 +1,23 @@
 ﻿using DomainInfra;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NiTodo.App
 {
-    public class TodoService
+    public enum SortMode
+    {
+        Content,
+        Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
+        Planned
+    }
+    public class NiTodoApp
     {
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
         private readonly ICopyContent copyContent;
-        public TodoService(
+        public NiTodoApp(
             ITodoRepository todoRepository,
             DomainEventDispatcher domainEventDispatcher,
             ICopyContent copyContent
@@ -27,7 +34,7 @@ namespace NiTodo.App
             {
                 throw new ArgumentException("Todo ID cannot be empty.", nameof(id));
             }
-            var todoItem = _todoRepository.GetAll().Find(t => t.Id == id);
+            var todoItem = _todoRepository.GetAll().FirstOrDefault(t => t.Id == id);
             if (todoItem == null)
             {
                 throw new KeyNotFoundException($"Todo with ID {id} not found.");
@@ -65,7 +72,7 @@ namespace NiTodo.App
             {
                 throw new ArgumentException("Todo ID cannot be empty.", nameof(id));
             }
-            var todoItem = _todoRepository.GetAll().Find(t => t.Id == id);
+            var todoItem = _todoRepository.GetAll().FirstOrDefault(t => t.Id == id);
             if (todoItem == null)
             {
                 throw new KeyNotFoundException($"Todo with ID {id} not found.");
@@ -97,17 +104,27 @@ namespace NiTodo.App
 
         public List<TodoItem> GetAllTodos()
         {
-            return _todoRepository.GetAll();
+            return _todoRepository.GetAll().ToList();
         }
 
-        public List<TodoItem> ShowTodo(bool showCompleted = false)
+        public List<TodoItem> ShowTodo(bool showCompletedItems, bool isOnlyToday)
         {
-            if (showCompleted)
+            var r = _todoRepository.GetAll();
+
+            if (showCompletedItems == false)
             {
-                return _todoRepository.GetAll();
+                r = _todoRepository.GetAll()
+                .Where(t => t.HasCompletedFiveSecondsBefore(DateTime.Now) == false);
             }
 
-            return _todoRepository.GetShouldShow();
+            if (isOnlyToday)
+            {
+                r = r
+                .Where(t => (t.PlannedDate.HasValue == false) ||
+                (t.PlannedDate.HasValue && t.PlannedDate.Value.Date == DateTime.Now.Date));
+            }
+
+            return r.ToList();
         }
 
         public void UpdateTodo(TodoItem todo)

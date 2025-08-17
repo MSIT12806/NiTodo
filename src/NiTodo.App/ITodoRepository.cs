@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,8 +7,7 @@ namespace NiTodo.App
     public interface ITodoRepository
     {
         void Add(TodoItem todoItem);
-        List<TodoItem> GetAll();
-        List<TodoItem> GetShouldShow();
+        IEnumerable<TodoItem> GetAll();
         void SaveChange(TodoItem item);
     }
 
@@ -27,15 +25,11 @@ namespace NiTodo.App
             _todoItems.Add(todoItem);
         }
 
-        public List<TodoItem> GetAll()
+        public IEnumerable<TodoItem> GetAll()
         {
             return _todoItems.ToList();
         }
 
-        public List<TodoItem> GetShouldShow()
-        {
-            return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
-        }
 
         public void SaveChange(TodoItem item)
         {
@@ -57,6 +51,30 @@ namespace NiTodo.App
                 ReadFromFile();
             }
         }
+        public void Add(TodoItem todoItem)
+        {
+            // 將 todoItem 儲存到檔案的邏輯
+            if (todoItem == null)
+            {
+                throw new System.ArgumentNullException(nameof(todoItem));
+            }
+            _todoItems.Add(todoItem);
+            WriteToFile();
+        }
+        public IEnumerable<TodoItem> GetAll()
+        {
+            return _todoItems;
+        }
+
+        public void SaveChange(TodoItem item)
+        {
+            var oriItem = _todoItems.First(i => i.Id == item.Id);
+            var index = _todoItems.IndexOf(oriItem);
+            _todoItems[index] = item;
+            WriteToFile();
+        }
+
+
         private void ReadFromFile()
         {
             // 將 file 內容全部讀取到 _todoItems
@@ -75,33 +93,6 @@ namespace NiTodo.App
             // 將 _todoItems 轉換成 json 字串，然後存進檔案當中
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(_todoItems);
             System.IO.File.WriteAllText(_filePath, json);
-        }
-        public void Add(TodoItem todoItem)
-        {
-            // 將 todoItem 儲存到檔案的邏輯
-            if (todoItem == null)
-            {
-                throw new System.ArgumentNullException(nameof(todoItem));
-            }
-            _todoItems.Add(todoItem);
-            WriteToFile();
-        }
-        public List<TodoItem> GetAll()
-        {
-            return _todoItems;
-        }
-        public List<TodoItem> GetShouldShow()
-        {
-            // 取得所有的 TodoItem，並且過濾掉已經完成的
-            return _todoItems.Where(t => t.CompletedAfterFiveSeconds(DateTime.Now) == false).ToList();
-        }
-
-        public void SaveChange(TodoItem item)
-        {
-            var oriItem = _todoItems.First(i => i.Id == item.Id);
-            var index = _todoItems.IndexOf(oriItem);
-            _todoItems[index] = item;
-            WriteToFile();
         }
     }
 }

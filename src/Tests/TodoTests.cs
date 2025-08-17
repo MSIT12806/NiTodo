@@ -3,15 +3,29 @@ using NiTodo.App;
 
 namespace Tests
 {
+    public class MockCopyContent : ICopyContent
+    {
+        public string CopiedContent { get; private set; }
+        public void Copy(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                throw new ArgumentException("Content cannot be empty.", nameof(content));
+            }
+            CopiedContent = content;
+        }
+    }
     public class TodoTests
     {
-        TodoService todoService;
+        NiTodoApp todoService;
         DomainEventDispatcher domainEventDispatcher;
+        ICopyContent copyContent;
         [SetUp]
         public void Setup()
         {
             domainEventDispatcher = new DomainEventDispatcher();
-            todoService = new TodoService(new InMemoryTodoRepository(), domainEventDispatcher);
+            copyContent = new MockCopyContent();
+            todoService = new NiTodoApp(new InMemoryTodoRepository(), domainEventDispatcher, copyContent);
         }
 
         [Test]
@@ -54,7 +68,7 @@ namespace Tests
             todoService.CompleteTodo(id);
             // Assert
             var todos = todoService.GetAllTodos();
-            Assert.That(todos[0].CompletedAfterFiveSeconds(DateTime.Now.AddSeconds(5)), Is.True);
+            Assert.That(todos[0].HasCompletedFiveSecondsBefore(DateTime.Now.AddSeconds(5)), Is.True);
         }
 
         //TODO: 測試 service.GetAllTodos() 
@@ -69,7 +83,7 @@ namespace Tests
             //Arrange .. create a uncompleted todo item
             var id = todoService.CreateTodo("Test Todo");
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo();
+            var todos = todoService.ShowTodo(true, false);
             //Assert
             Assert.That(todos.Count, Is.EqualTo(1));
         }
@@ -81,7 +95,7 @@ namespace Tests
             var id = todoService.CreateTodo("Test Todo");
             todoService.CompleteTodo(id);
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo();
+            var todos = todoService.ShowTodo(false, false);
             //Assert
             Assert.That(todos.Count, Is.EqualTo(1));
         }
@@ -94,7 +108,7 @@ namespace Tests
             todoService.CompleteTodo(id);
             Thread.Sleep(5001);
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo();
+            var todos = todoService.ShowTodo(true, false);
             //Assert
             Assert.That(todos.Count, Is.EqualTo(0));
         }

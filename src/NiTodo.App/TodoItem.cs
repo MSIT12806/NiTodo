@@ -9,8 +9,8 @@ namespace NiTodo.App
         public string Id { get; set; }
         public string Content { get; set; }
         public DateTime? PlannedDate { get; set; }
-    // 新增建立時間；舊資料可能沒有 -> nullable
-    public DateTime? CreatedAt { get; set; }
+        // 新增建立時間；舊資料可能沒有 -> nullable
+        public DateTime? CreatedAt { get; set; }
         public IReadOnlyList<string> Tags
         {
             get
@@ -32,7 +32,7 @@ namespace NiTodo.App
             CompleteDateTime = DateTime.Now;
         }
         public bool IsCompleted => CompleteDateTime.HasValue;
-        public bool CompletedAfterFiveSeconds(DateTime dt)
+        public bool HasCompletedFiveSecondsBefore(DateTime dt)
         {
             if (CompleteDateTime.HasValue == false)
             {

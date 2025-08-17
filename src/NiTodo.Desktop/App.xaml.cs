@@ -28,7 +28,7 @@ namespace NiTodo.Desktop
             serviceCollection.AddSingleton<DomainEventDispatcher>();
             serviceCollection.AddSingleton<ICopyContent, CopyContent>();
             serviceCollection.AddSingleton<ITodoRepository, FileTodoRepository>();
-            serviceCollection.AddTransient<TodoService>();
+            serviceCollection.AddTransient<NiTodoApp>();
 
             //
             ServiceProvider = serviceCollection.BuildServiceProvider();
