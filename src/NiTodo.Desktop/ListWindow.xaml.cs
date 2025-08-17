@@ -35,7 +35,7 @@ namespace NiTodo.Desktop
     {
         NiTodoApp niTodoApp = App.ServiceProvider.GetRequiredService<NiTodoApp>();
         private List<TodoItem> todoListForShow => niTodoApp
-            .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false, ShowTodayCheckBox.IsChecked ?? false);
+            .ShowTodo();
 
         // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
         private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
@@ -263,11 +263,6 @@ namespace NiTodo.Desktop
         #endregion
 
         #region Search Area
-        private void FilterChanged(object sender, RoutedEventArgs e)
-        {
-            // 處理固定的二態篩選 (已完成 / 今天)
-            RefreshWindow();
-        }
 
         private void TagCheckBox_Click(object sender, RoutedEventArgs e)
         {
@@ -414,5 +409,16 @@ namespace NiTodo.Desktop
         }
 
         #endregion
+
+        private void ShowCompletedCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            niTodoApp.ShowCompletedItems = ShowCompletedCheckBox.IsChecked ?? false;
+            RefreshWindow();
+        }
+        private void ShowTodayCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            niTodoApp.ShowTodayItems = ShowTodayCheckBox.IsChecked ?? false;
+            RefreshWindow();
+        }
     }
 }

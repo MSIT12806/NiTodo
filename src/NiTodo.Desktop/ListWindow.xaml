@@ -53,8 +53,8 @@
 
                     <!-- 篩選區 (Tag 動態加入) -->
                     <WrapPanel x:Name="FilterPanel" Grid.Column="0">
-                        <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
-                        <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="FilterChanged" Unchecked="FilterChanged" Margin="5,0"/>
+                        <CheckBox Content="已完成" x:Name="ShowCompletedCheckBox" Checked="ShowCompletedCheckBox_Changed" Unchecked="ShowCompletedCheckBox_Changed" Margin="5,0"/>
+                        <CheckBox Content="今天" x:Name="ShowTodayCheckBox" Checked="ShowTodayCheckBox_Changed" Unchecked="ShowTodayCheckBox_Changed" Margin="5,0"/>
                         <!-- Tag checkboxes 將由程式碼動態加入 -->
                     </WrapPanel>
 

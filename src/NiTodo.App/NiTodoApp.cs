@@ -12,6 +12,8 @@ namespace NiTodo.App
         public SortMode CurrentSortMode = SortMode.Content;
         public HashSet<string> IncludeTags = new HashSet<string>();
         public HashSet<string> ExcludeTags = new HashSet<string>();
+        public bool ShowCompletedItems = false;
+        public bool ShowTodayItems = false;
 
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
@@ -107,17 +109,17 @@ namespace NiTodo.App
             return _todoRepository.GetAll().ToList();
         }
 
-        public List<TodoItem> ShowTodo(bool showCompletedItems, bool isOnlyToday)
+        public List<TodoItem> ShowTodo()
         {
             var r = _todoRepository.GetAll();
 
-            if (showCompletedItems == false)
+            if (ShowCompletedItems == false)
             {
                 r = _todoRepository.GetAll()
                 .Where(t => t.HasCompletedFiveSecondsBefore(DateTime.Now) == false);
             }
 
-            if (isOnlyToday)
+            if (ShowTodayItems)
             {
                 r = r
                 .Where(t => (t.PlannedDate.HasValue == false) ||
@@ -149,6 +151,7 @@ namespace NiTodo.App
             {
                 throw new ArgumentException("Tag cannot be empty.", nameof(tag));
             }
+            ExcludeTags.Remove(tag);
             IncludeTags.Add(tag);
         }
 
@@ -158,6 +161,7 @@ namespace NiTodo.App
             {
                 throw new ArgumentException("Tag cannot be empty.", nameof(tag));
             }
+            IncludeTags.Remove(tag);
             ExcludeTags.Add(tag);
         }
 
@@ -173,8 +177,15 @@ namespace NiTodo.App
 
         public IEnumerable<string> GetAllTags()
         {
-            return GetAllTodos()
-                 .SelectMany(t => t.Tags)
+            var items = _todoRepository.GetAll();
+
+            if (ShowCompletedItems == false)
+            {
+                items = _todoRepository.GetAll()
+                .Where(t => t.HasCompletedFiveSecondsBefore(DateTime.Now) == false);
+            }
+
+            return items.SelectMany(t => t.Tags)
                  .Distinct()
                  .OrderBy(t => t);
         }
