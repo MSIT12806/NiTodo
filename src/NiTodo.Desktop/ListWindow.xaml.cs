@@ -37,10 +37,7 @@ namespace NiTodo.Desktop
         private List<TodoItem> todoListForShow => niTodoApp
             .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false, ShowTodayCheckBox.IsChecked ?? false);
 
-
         // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
-        private enum TagFilterState { Ignore, Include, Exclude }
-        private readonly Dictionary<string, TagFilterState> _tagStates = new();
         private readonly DispatcherTimer _highlightTimer = new DispatcherTimer();
         // 選取狀態：以 TodoId 保存，避免重繪後遺失
         private readonly Brush _selectedBrush = Brushes.DarkGray;
@@ -122,12 +119,6 @@ namespace NiTodo.Desktop
 
             // 準備集合
             IEnumerable<TodoItem> items = todoListForShow;
-            var includeTags = _tagStates.Where(kv => kv.Value == TagFilterState.Include).Select(kv => kv.Key).ToList();
-            var excludeTags = _tagStates.Where(kv => kv.Value == TagFilterState.Exclude).Select(kv => kv.Key).ToHashSet();
-            if (includeTags.Any())
-                items = items.Where(i => i.Tags.Any(t => includeTags.Contains(t)));
-            if (excludeTags.Any())
-                items = items.Where(i => !i.Tags.Any(t => excludeTags.Contains(t)));
 
             // 排序
             items = niTodoApp.CurrentSortMode switch
@@ -287,20 +278,18 @@ namespace NiTodo.Desktop
         {
             if (sender is not CheckBox cb)
                 return;
+
             var tag = cb.Content as string;
             if (string.IsNullOrWhiteSpace(tag))
                 return;
 
             TagFilterState state = TagFilterState.Ignore;
             if (cb.IsChecked == true)
-                state = TagFilterState.Include;
+                niTodoApp.SetTagInclude(tag);
             else if (cb.IsChecked == null)
-                state = TagFilterState.Exclude;
-
-            if (state == TagFilterState.Ignore)
-                _tagStates.Remove(tag);
+                niTodoApp.SetTagExclude(tag);
             else
-                _tagStates[tag] = state;
+                niTodoApp.SetTagIgnore(tag);
 
             RefreshWindow();
         }

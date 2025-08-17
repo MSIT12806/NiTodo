@@ -10,6 +10,9 @@ namespace NiTodo.App
     {
         public TodoItem SelectedTodoItem;
         public SortMode CurrentSortMode = SortMode.Content;
+        public HashSet<string> IncludeTags = new HashSet<string>();
+        public HashSet<string> ExcludeTags = new HashSet<string>();
+
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
         private readonly ICopyContent copyContent;
@@ -121,6 +124,11 @@ namespace NiTodo.App
                 (t.PlannedDate.HasValue && t.PlannedDate.Value.Date == DateTime.Now.Date));
             }
 
+            if (IncludeTags.Any())
+                r = r.Where(i => i.Tags.Any(t => IncludeTags.Contains(t)));
+            if (ExcludeTags.Any())
+                r = r.Where(i => !i.Tags.Any(t => ExcludeTags.Contains(t)));
+
             return r.ToList();
         }
 
@@ -134,6 +142,34 @@ namespace NiTodo.App
             var content = todo.GetContentWithoutPrefix();
             copyContent.Copy(content);
         }
+
+        public void SetTagInclude(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                throw new ArgumentException("Tag cannot be empty.", nameof(tag));
+            }
+            IncludeTags.Add(tag);
+        }
+
+        public void SetTagExclude(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                throw new ArgumentException("Tag cannot be empty.", nameof(tag));
+            }
+            ExcludeTags.Add(tag);
+        }
+
+        public void SetTagIgnore(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                throw new ArgumentException("Tag cannot be empty.", nameof(tag));
+            }
+            IncludeTags.Remove(tag);
+            ExcludeTags.Remove(tag);
+        }
     }
     public enum SortMode
     {
@@ -141,4 +177,10 @@ namespace NiTodo.App
         Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
         Planned
     }
+
+    public enum TagFilterState
+    {
+        Ignore, Include, Exclude
+    }
+
 }
