@@ -6,14 +6,9 @@ using System.Threading.Tasks;
 
 namespace NiTodo.App
 {
-    public enum SortMode
-    {
-        Content,
-        Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
-        Planned
-    }
     public class NiTodoApp
     {
+        public SortMode CurrentSortMode = SortMode.Content;
         private readonly ITodoRepository _todoRepository;
         private readonly DomainEventDispatcher _domainEventDispatcher;
         private readonly ICopyContent copyContent;
@@ -137,5 +132,11 @@ namespace NiTodo.App
             var content = todo.GetContentWithoutPrefix();
             copyContent.Copy(content);
         }
+    }
+    public enum SortMode
+    {
+        Content,
+        Created, // 目前沒有保存建立日期，暫以 Id 生成順序 (Guid) 代替，或保持原順序
+        Planned
     }
 }

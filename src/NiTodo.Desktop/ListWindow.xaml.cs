@@ -38,14 +38,6 @@ namespace NiTodo.Desktop
             .ShowTodo(ShowCompletedCheckBox.IsChecked ?? false, ShowTodayCheckBox.IsChecked ?? false);
 
 
-        private SortMode _currentSort = SortMode.Content;
-
-        private static bool IsToday(TodoItem i)
-        {
-            // 如果 PlannedDate 為 null，則視為今天
-            return ((i.PlannedDate ?? DateTime.Today).Date == DateTime.Today);
-        }
-
         // 三態標籤篩選：Ignore -> 不管, Include -> 需包含, Exclude -> 不可包含
         private enum TagFilterState { Ignore, Include, Exclude }
         private readonly Dictionary<string, TagFilterState> _tagStates = new();
@@ -139,7 +131,7 @@ namespace NiTodo.Desktop
                 items = items.Where(i => !i.Tags.Any(t => excludeTags.Contains(t)));
 
             // 排序
-            items = _currentSort switch
+            items = niTodoApp.CurrentSortMode switch
             {
                 SortMode.Content => items.OrderBy(i => i.Content, StringComparer.CurrentCultureIgnoreCase),
                 SortMode.Planned => items.OrderBy(i => i.PlannedDate.HasValue ? 0 : 1) // 無預計時間放後面
@@ -319,7 +311,7 @@ namespace NiTodo.Desktop
             if (SortComboBox.SelectedItem is ComboBoxItem cbi)
             {
                 var tag = cbi.Tag as string;
-                _currentSort = tag switch
+                niTodoApp.CurrentSortMode = tag switch
                 {
                     "Content" => SortMode.Content,
                     "Created" => SortMode.Created,
