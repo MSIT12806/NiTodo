@@ -207,6 +207,13 @@ namespace NiTodo.App
                 return TagFilterState.Ignore;
             }
         }
+
+        public void ResetTagLists()
+        {
+            var tags = GetAllTags();
+            IncludeTags.IntersectWith(tags);
+            ExcludeTags.IntersectWith(tags);
+        }
     }
     public enum SortMode
     {

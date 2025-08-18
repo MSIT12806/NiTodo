@@ -33,6 +33,7 @@ namespace NiTodo.Desktop
             var domainEventDispatcher = App.ServiceProvider.GetRequiredService<DomainEventDispatcher>();
             var refreshWindowHandler = new RefreshWindowEventHandler(new UiRenderer(this));
             domainEventDispatcher.Register(refreshWindowHandler);
+            domainEventDispatcher.Register(new TodoItemCompletedEventHandler(niTodoApp));
 
             RefreshWindow(); // 初始化畫面
 
