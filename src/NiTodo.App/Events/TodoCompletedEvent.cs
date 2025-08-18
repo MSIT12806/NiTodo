@@ -1,7 +1,7 @@
 ﻿using DomainInfra;
 using System;
 
-namespace NiTodo.App
+namespace NiTodo.App.Events
 {
     public class TodoCompletedEvent : IDomainEvent
     {

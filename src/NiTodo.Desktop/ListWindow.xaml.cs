@@ -1,6 +1,7 @@
 ﻿using DomainInfra;
 using Microsoft.Extensions.DependencyInjection;
 using NiTodo.App;
+using NiTodo.App.EventHandlers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;

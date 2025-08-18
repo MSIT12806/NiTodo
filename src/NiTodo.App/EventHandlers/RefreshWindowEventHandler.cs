@@ -1,7 +1,8 @@
 ﻿using DomainInfra;
 using NiTodo.App.Events;
+using NiTodo.App.Interfaces;
 
-namespace NiTodo.App
+namespace NiTodo.App.EventHandlers
 {
     public class RefreshWindowEventHandler : IDomainEventHandler
     {

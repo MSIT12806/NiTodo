@@ -1,4 +1,4 @@
-﻿namespace NiTodo.App
+﻿namespace NiTodo.App.Interfaces
 {
     public interface ICopyContent
     {

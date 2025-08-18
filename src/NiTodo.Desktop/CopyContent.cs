@@ -1,4 +1,4 @@
-﻿using NiTodo.App;
+﻿using NiTodo.App.Interfaces;
 
 namespace NiTodo.Desktop
 {
