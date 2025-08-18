@@ -9,25 +9,7 @@ using System.Windows.Threading;
 
 namespace NiTodo.Desktop
 {
-    public class RefreshWindowEventHandler : IDomainEventHandler
-    {
-        //TODO: 這可能要跟框架分手，因為 這個類應該是 App Layer 的一部分
-        private readonly ListWindow _listWindow;
-        public RefreshWindowEventHandler(ListWindow listWindow)
-        {
-            _listWindow = listWindow;
-        }
-        public void Handle(IDomainEvent domainEvent)
-        {
-            _listWindow.RefreshWindow();
-        }
-        public bool IsThisEvent(IDomainEvent domainEvent)
-        {
-            return domainEvent is TodoCreatedEvent
-                || domainEvent is TodoCompletedEvent
-                || domainEvent is TodoCompletedAfterFiveSecondsEvent;
-        }
-    }
+
     /// <summary>
     /// ListWindow.xaml 的互動邏輯
     /// </summary>
@@ -48,7 +30,7 @@ namespace NiTodo.Desktop
 
             // 註冊事件處理器
             var domainEventDispatcher = App.ServiceProvider.GetRequiredService<DomainEventDispatcher>();
-            var refreshWindowHandler = new RefreshWindowEventHandler(this);
+            var refreshWindowHandler = new RefreshWindowEventHandler(new UiRenderer(this));
             domainEventDispatcher.Register(refreshWindowHandler);
 
             RefreshWindow(); // 初始化畫面

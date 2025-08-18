@@ -1,5 +1,6 @@
 using DomainInfra;
 using NiTodo.App;
+using NiTodo.App.Events;
 
 namespace Tests
 {

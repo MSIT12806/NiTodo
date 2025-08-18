@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace NiTodo.App
+namespace NiTodo.App.Interfaces
 {
     public interface ITodoRepository
     {
@@ -46,7 +46,7 @@ namespace NiTodo.App
         public FileTodoRepository()
         {
             // 讀取檔案內容
-            if (System.IO.File.Exists(_filePath))
+            if (File.Exists(_filePath))
             {
                 ReadFromFile();
             }
@@ -78,21 +78,21 @@ namespace NiTodo.App
         private void ReadFromFile()
         {
             // 將 file 內容全部讀取到 _todoItems
-            var json = System.IO.File.ReadAllText(_filePath);
+            var json = File.ReadAllText(_filePath);
             _todoItems = Newtonsoft.Json.JsonConvert.DeserializeObject<List<TodoItem>>(json);
         }
         private void WriteToFile()
         {
             // 確保資料夾存在
             var directory = Path.GetDirectoryName(_filePath);
-            if (!string.IsNullOrEmpty(directory) && !System.IO.Directory.Exists(directory))
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
-                System.IO.Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(directory);
             }
 
             // 將 _todoItems 轉換成 json 字串，然後存進檔案當中
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(_todoItems);
-            System.IO.File.WriteAllText(_filePath, json);
+            File.WriteAllText(_filePath, json);
         }
     }
 }

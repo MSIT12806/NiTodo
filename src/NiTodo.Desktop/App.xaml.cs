@@ -1,6 +1,7 @@
 ﻿using DomainInfra;
 using Microsoft.Extensions.DependencyInjection;
 using NiTodo.App;
+using NiTodo.App.Interfaces;
 using System.Windows;
 
 namespace NiTodo.Desktop
