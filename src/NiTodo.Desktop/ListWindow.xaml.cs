@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NiTodo.App;
 using NiTodo.App.EventHandlers;
+using NiTodo.App.Events;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,13 +11,12 @@ using System.Windows.Threading;
 
 namespace NiTodo.Desktop
 {
-
     /// <summary>
     /// ListWindow.xaml 的互動邏輯
     /// </summary>
     public partial class ListWindow : Window
     {
-        NiTodoApp niTodoApp = App.ServiceProvider.GetRequiredService<NiTodoApp>();
+        NiTodoApp niTodoApp = AppServices.ServiceProvider.GetRequiredService<NiTodoApp>();
         private List<TodoItem> todoListForShow => niTodoApp
             .ShowTodo();
 
@@ -30,9 +30,8 @@ namespace NiTodo.Desktop
             InitializeComponent();
 
             // 註冊事件處理器
-            var domainEventDispatcher = App.ServiceProvider.GetRequiredService<DomainEventDispatcher>();
-            var refreshWindowHandler = new RefreshWindowEventHandler(new UiRenderer(this));
-            domainEventDispatcher.Register(refreshWindowHandler);
+            var domainEventDispatcher = AppServices.ServiceProvider.GetRequiredService<DomainEventDispatcher>();
+            domainEventDispatcher.Register(new RefreshWindowEventHandler(new UiRenderer(this)));
             domainEventDispatcher.Register(new TodoItemCompletedEventHandler(niTodoApp));
 
             RefreshWindow(); // 初始化畫面
@@ -173,6 +172,10 @@ namespace NiTodo.Desktop
             };
             checkBox.IsChecked = todo.IsCompleted;
             checkBox.Checked += async (s, e) => await OnTodoItemChecked(todo);
+            checkBox.Unchecked += async (s, e) =>
+            {
+                niTodoApp.CancelCompleteTodo(todo.Id);
+            };
             Grid.SetColumn(checkBox, 0);
 
             // 文字 + 日期再用一個 StackPanel，文字可換行
@@ -287,8 +290,7 @@ namespace NiTodo.Desktop
         #endregion 
         private async Task OnTodoItemChecked(TodoItem item)
         {
-            var service = App.ServiceProvider.GetRequiredService<NiTodoApp>();
-            service.CompleteTodo(item.Id);
+            niTodoApp.CompleteTodo(item.Id);
         }
         private void EditTodoItem(TodoItem todo)
         {
@@ -354,9 +356,7 @@ namespace NiTodo.Desktop
             if (string.IsNullOrWhiteSpace(content) || content == (string)NewTodoTextBox.Tag)
                 return;
 
-            var service = App.ServiceProvider.GetRequiredService<NiTodoApp>();
-            service.CreateTodo(content);
-
+            niTodoApp.CreateTodo(content);
             NewTodoTextBox.Text = ""; // 清空輸入框
         }
 

@@ -47,7 +47,7 @@ namespace NiTodo.App
             _todoRepository.SaveChange(todoItem);
 
             // 發出領域事件
-            var todoUncompletedEvent = new TodoUncompletedEvent(todoItem);
+            var todoUncompletedEvent = new TodoUncompletedEvent();
             _domainEventDispatcher.Dispatch(todoUncompletedEvent, null);
         }
 

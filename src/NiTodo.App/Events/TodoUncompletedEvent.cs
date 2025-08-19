@@ -5,11 +5,9 @@ namespace NiTodo.App.Events
 {
     public class TodoUncompletedEvent : IDomainEvent
     {
-        public TodoUncompletedEvent(TodoItem todo)
+        public TodoUncompletedEvent()
         {
-            Todo = todo;
         }
-        public TodoItem Todo { get; }
 
         public DateTime OccurredOn => _OccurredOn;
         DateTime _OccurredOn = DateTime.UtcNow;
