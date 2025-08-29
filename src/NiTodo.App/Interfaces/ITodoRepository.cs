@@ -38,30 +38,6 @@ namespace NiTodo.App.Interfaces
             _todoItems[index] = item;
         }
     }
-    public class TodoV1ToV2
-    {
-        List<TodoItemV1> _todoItems = new List<TodoItemV1>();
-        readonly string _filePath = Path.Combine("data", "todo.txt");
-        public TodoV1ToV2()
-        {
-            // 讀取檔案內容
-            if (File.Exists(_filePath))
-            {
-                ReadFromFile();
-            }
-        }
-        private void ReadFromFile()
-        {
-            // 將 file 內容全部讀取到 _todoItems
-            var json = File.ReadAllText(_filePath);
-            _todoItems = Newtonsoft.Json.JsonConvert.DeserializeObject<List<TodoItemV1>>(json);
-        }
-
-        public List<TodoItem> ConvertToV2()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
     public class FileTodoRepository : ITodoRepository
     {
         List<TodoItem> _todoItems = new List<TodoItem>();
