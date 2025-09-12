@@ -40,6 +40,9 @@ namespace NiTodo.Desktop
             _highlightTimer.Interval = TimeSpan.FromSeconds(5);
             _highlightTimer.Tick += HighlightDueTodos;
             _highlightTimer.Start();
+
+            // 全域鍵盤事件：Ctrl+C 複製選取項目內容
+            this.PreviewKeyDown += ListWindow_PreviewKeyDown;
         }
 
         #region 自訂標題列
@@ -187,14 +190,6 @@ namespace NiTodo.Desktop
                 FontSize = 16,
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 2)
-            };
-            todoTextBlock.MouseDown += (s, e) =>
-            {
-                if (e.ClickCount == 2)
-                {
-                    niTodoApp.CopyContent(todo);
-                    ToastManager.ShowToast($"{todo.GetContentWithoutPrefix()} 已複製");
-                }
             };
             if (todo.IsCompleted)
             {
@@ -403,6 +398,40 @@ namespace NiTodo.Desktop
         {
             niTodoApp.ShowTodayItems = ShowTodayCheckBox.IsChecked ?? false;
             RefreshWindow();
+        }
+
+        private void ListWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // 按下 Ctrl + C 進行複製
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.C)
+            {
+                // 若目前焦點在輸入框，則不要攔截，讓 TextBox 自己處理複製
+                if (Keyboard.FocusedElement is TextBox)
+                {
+                    return;
+                }
+
+                var todo = niTodoApp.SelectedTodoItem;
+                if (todo != null)
+                {
+                    niTodoApp.CopyContent(todo);
+                    ToastManager.ShowToast($"{todo.GetContentWithoutPrefix()} 已複製");
+                    e.Handled = true;
+                }
+            }
+
+            // 按下 Delete 鍵刪除選取項目
+            if (e.Key == Key.Delete)
+            {
+                var todo = niTodoApp.SelectedTodoItem;
+                if (todo != null)
+                {
+                    niTodoApp.DeleteTodo(todo.Id);
+                    niTodoApp.SelectedTodoItem = null;
+                    RefreshWindow();
+                    e.Handled = true;
+                }
+            }
         }
     }
 }

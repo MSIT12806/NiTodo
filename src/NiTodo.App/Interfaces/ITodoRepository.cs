@@ -7,6 +7,7 @@ namespace NiTodo.App.Interfaces
     public interface ITodoRepository
     {
         void Add(TodoItem todoItem);
+        void Delete(TodoItem item);
         IEnumerable<TodoItem> GetAll();
         void SaveChange(TodoItem item);
     }
@@ -23,6 +24,11 @@ namespace NiTodo.App.Interfaces
             }
 
             _todoItems.Add(todoItem);
+        }
+
+        public void Delete(TodoItem item)
+        {
+            _todoItems.Remove(item);
         }
 
         public IEnumerable<TodoItem> GetAll()
@@ -58,6 +64,12 @@ namespace NiTodo.App.Interfaces
                 throw new System.ArgumentNullException(nameof(todoItem));
             }
             _todoItems.Add(todoItem);
+            WriteToFile();
+        }
+
+        public void Delete(TodoItem item)
+        {
+            _todoItems.Remove(item);
             WriteToFile();
         }
         public IEnumerable<TodoItem> GetAll()

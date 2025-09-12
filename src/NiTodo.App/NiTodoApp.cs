@@ -214,6 +214,15 @@ namespace NiTodo.App
             IncludeTags.IntersectWith(tags);
             ExcludeTags.IntersectWith(tags);
         }
+
+        public void DeleteTodo(string id)
+        {
+            var todoItem = GetItem(id);
+            _todoRepository.Delete(todoItem);
+            // 發出領域事件
+            var todoDeletedEvent = new TodoDeletedEvent(todoItem);
+            _domainEventDispatcher.Dispatch(todoDeletedEvent, null);
+        }
     }
     public enum SortMode
     {

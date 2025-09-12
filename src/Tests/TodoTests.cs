@@ -85,7 +85,7 @@ namespace Tests
             //Arrange .. create a uncompleted todo item
             var id = todoService.CreateTodo("Test Todo");
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo(true, false);
+            var todos = todoService.ShowTodo();
             //Assert
             Assert.That(todos.Count, Is.EqualTo(1));
         }
@@ -97,7 +97,7 @@ namespace Tests
             var id = todoService.CreateTodo("Test Todo");
             todoService.CompleteTodo(id);
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo(false, false);
+            var todos = todoService.ShowTodo();
             //Assert
             Assert.That(todos.Count, Is.EqualTo(1));
         }
@@ -110,7 +110,7 @@ namespace Tests
             todoService.CompleteTodo(id);
             Thread.Sleep(5001);
             //Act .. excute ShowTodo
-            var todos = todoService.ShowTodo(true, false);
+            var todos = todoService.ShowTodo();
             //Assert
             Assert.That(todos.Count, Is.EqualTo(0));
         }
