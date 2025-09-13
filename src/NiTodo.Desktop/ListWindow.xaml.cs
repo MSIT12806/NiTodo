@@ -43,6 +43,8 @@ namespace NiTodo.Desktop
 
             // 全域鍵盤事件：Ctrl+C 複製選取項目內容
             this.PreviewKeyDown += ListWindow_PreviewKeyDown;
+            // 全域滑鼠事件：點擊非待辦項目的區域時，清除選取避免誤操作
+            this.PreviewMouseLeftButtonDown += ListWindow_PreviewMouseLeftButtonDown;
         }
 
         #region 自訂標題列
@@ -387,6 +389,50 @@ namespace NiTodo.Desktop
             }
         }
 
+        private void ClearSelection()
+        {
+            niTodoApp.SelectedTodoItem = null;
+            RefreshWindow();
+        }
+
+        private void ListWindow_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 若點擊發生在任何一個待辦項目 Grid 內，則不清除選取
+            if (e.OriginalSource is DependencyObject source)
+            {
+                foreach (var grid in _todoGridMap.Values)
+                {
+                    if (IsDescendantOf(source, grid))
+                    {
+                        return; // 點在待辦項目上，交給該項目的處理器
+                    }
+                }
+            }
+
+            // 點擊在應用的其他地方：清除選取，避免誤刪或誤複製
+            ClearSelection();
+        }
+
+        private static bool IsDescendantOf(DependencyObject? child, DependencyObject ancestor)
+        {
+            var current = child;
+            while (current != null)
+            {
+                if (current == ancestor)
+                    return true;
+                try
+                {
+                    current = VisualTreeHelper.GetParent(current);
+                }
+                catch
+                {
+                    // 某些元素可能不在視覺樹中或拋例外，安全退回
+                    return false;
+                }
+            }
+            return false;
+        }
+
         #endregion
 
         private void ShowCompletedCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -423,13 +469,21 @@ namespace NiTodo.Desktop
             // 按下 Delete 鍵刪除選取項目
             if (e.Key == Key.Delete)
             {
+                // 若焦點在輸入框，讓 TextBox 自己處理刪字元，不進行刪除待辦
+                if (Keyboard.FocusedElement is TextBox)
+                {
+                    return;
+                }
                 var todo = niTodoApp.SelectedTodoItem;
                 if (todo != null)
                 {
                     niTodoApp.DeleteTodo(todo.Id);
                     niTodoApp.SelectedTodoItem = null;
-                    RefreshWindow();
                     e.Handled = true;
+                    ToastManager.ShowToast($"已刪除「{todo.GetContentWithoutPrefix()}」", "復原", () =>
+                    {
+                        niTodoApp.RestoreTodo(todo);
+                    });
                 }
             }
         }

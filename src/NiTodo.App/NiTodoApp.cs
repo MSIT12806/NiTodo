@@ -223,6 +223,18 @@ namespace NiTodo.App
             var todoDeletedEvent = new TodoDeletedEvent(todoItem);
             _domainEventDispatcher.Dispatch(todoDeletedEvent, null);
         }
+
+        public void RestoreTodo(TodoItem deleted)
+        {
+            if (deleted == null) throw new ArgumentNullException(nameof(deleted));
+
+            // 重新加入原本刪除的項目（保留其 Id 與內容）
+            _todoRepository.Add(deleted);
+
+            // 觸發 UI 更新（可視為重新建立事件）
+            var todoCreatedEvent = new TodoCreatedEvent(deleted);
+            _domainEventDispatcher.Dispatch(todoCreatedEvent, null);
+        }
     }
     public enum SortMode
     {

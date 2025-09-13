@@ -21,6 +21,7 @@ namespace NiTodo.App.EventHandlers
                 || domainEvent is TodoCompletedEvent
                 || domainEvent is TodoCompletedAfterFiveSecondsEvent
                 || domainEvent is TodoUncompletedEvent
+                || domainEvent is TodoDeletedEvent
                 ;
         }
     }

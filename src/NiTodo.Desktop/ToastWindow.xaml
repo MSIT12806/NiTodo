@@ -10,6 +10,10 @@
         ResizeMode="NoResize"
         Loaded="Window_Loaded">
     <Border Background="#CC333333" CornerRadius="8" Padding="10">
-        <TextBlock x:Name="MessageTextBlock" Foreground="White" FontSize="14"/>
+        <TextBlock x:Name="MessageTextBlock" Foreground="White" FontSize="14" TextWrapping="Wrap">
+            <Run x:Name="MessageRun" />
+            <Run x:Name="SpacerRun" Text=" "/>
+            <Hyperlink x:Name="ActionHyperlink" Click="ActionHyperlink_Click" Foreground="#66CCFF" TextDecorations="Underline" />
+        </TextBlock>
     </Border>
 </Window>
