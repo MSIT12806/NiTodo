@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using NiTodo.App;
 using NiTodo.App.Interfaces;
 using System.Windows;
+using NiScheduleApp.Interfaces;
+using NiScheduleApp;
 
 namespace NiTodo.Desktop
 {
@@ -23,6 +25,8 @@ namespace NiTodo.Desktop
             serviceCollection.AddSingleton<DomainEventDispatcher>();
             serviceCollection.AddSingleton<ICopyContent, CopyContent>();
             serviceCollection.AddSingleton<ITodoRepository, FileTodoRepository>();
+            serviceCollection.AddSingleton<IScheduleRepository, FileScheduleRepository>();
+            serviceCollection.AddSingleton<NiSchedule.App.NiScheduleApp>();
             serviceCollection.AddTransient<NiTodoApp>();
             AppServices.ServiceProvider = serviceCollection.BuildServiceProvider();
         }

@@ -24,6 +24,7 @@
                 <TextBlock Text="NiToDo" FontSize="16" Margin="10,0" VerticalAlignment="Center" Grid.Column="0"  />
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,0" Grid.Column="1">
+                    <Button Content="排程" Width="60" Margin="0,0,8,0" Click="OpenSchedule_Click" />
                     <!-- 調整透明度 -->
                     <Slider Width="100" Minimum="0.2" Maximum="1.0" Value="1.0"
                             ValueChanged="OpacitySlider_ValueChanged"

@@ -29,7 +29,7 @@ namespace Tests
             copyContent = new MockCopyContent();
             todoService = new NiTodoApp(new InMemoryTodoRepository(), domainEventDispatcher, copyContent);
         }
-
+        #region Create TodoItem
         [Test]
         public void CreateTodoItem()
         {
@@ -46,6 +46,19 @@ namespace Tests
             Assert.That(todos.Count, Is.EqualTo(1));
             Assert.That(todoCreatedEventHandler.isCreated, Is.True, "TodoCreatedEvent should be handled.");
         }
+        [Test]
+        public void CreateTodoItem_ShouldTrim()
+        {
+            // Act
+            var id = todoService.CreateTodo("TT  -   Test Todo   ");
+            // Assert
+            var todos = todoService.GetAllTodos();
+            Assert.That(todos.Count, Is.EqualTo(1));
+            Assert.That(todos[0].Content, Is.EqualTo("TT-Test Todo"));
+            Assert.That(todos[0].Id, Is.EqualTo(id));
+        }
+
+        #endregion Create TodoItem
 
         [Test]
         public void CompleteTodoItem()

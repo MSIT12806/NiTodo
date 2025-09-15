@@ -89,6 +89,13 @@ namespace NiTodo.Desktop
         }
         #endregion
 
+        private void OpenSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ScheduleWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
+
         #region Render Window
         public void RefreshWindow()
         {

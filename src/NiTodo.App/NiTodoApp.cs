@@ -29,7 +29,7 @@ namespace NiTodo.App
         {
             _todoRepository = todoRepository;
             _domainEventDispatcher = domainEventDispatcher;
-            this.copyContent = copyContent ?? throw new ArgumentNullException(nameof(copyContent));
+            this.copyContent = copyContent;
         }
 
         public void CancelCompleteTodo(string id)
@@ -85,18 +85,22 @@ namespace NiTodo.App
             return todoItem;
         }
 
-        public string CreateTodo(string todoContent)
+        public string CreateTodo(string todoContent, DateTime? plannedDatetime=null)
         {
             if (string.IsNullOrWhiteSpace(todoContent))
             {
                 throw new ArgumentException("Todo content cannot be empty.", nameof(todoContent));
             }
+            //去除掉多餘的空白
+            todoContent = TrimWhiteSpace(todoContent);
             var todoItem = new TodoItem
             {
                 Id = Guid.NewGuid().ToString(),
                 Content = todoContent,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                PlannedDate = plannedDatetime
             };
+
             _todoRepository.Add(todoItem);
 
             // 發出領域事件
@@ -106,9 +110,61 @@ namespace NiTodo.App
             return todoItem.Id;
         }
 
+        private string TrimWhiteSpace(string todoContent)
+        {
+            //1.標籤的銜接符`-`前後空白 應該去除
+            //2.狀態標籤`[]`前後空白 應該去除
+            //ex: 標籤A-[狀態A]文字內容 文字內容
+
+            todoContent = TrimWithCharacter(todoContent,'-');
+            todoContent = TrimWithCharacter(todoContent, '[');
+            todoContent = TrimWithCharacter(todoContent, ']');
+            return todoContent;
+        }
+
+        private string TrimWithCharacter(string todoContent, char v)
+        {
+            var parts = todoContent.Split(v);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i] = parts[i].Trim();
+            }
+            return string.Join(v.ToString(), parts);
+        }
+
         public List<TodoItem> GetAllTodos()
         {
             return _todoRepository.GetAll().ToList();
+        }
+        public IEnumerable<TodoItem> GetTodoItem(TodoItemSearchRequest req)
+        {
+            var r = _todoRepository.GetAll();
+            if (req.IncludeCompleted == false)
+            {
+                r = r.Where(t => t.HasCompletedFiveSecondsBefore(DateTime.Now) == false);
+            }
+
+            if (!string.IsNullOrWhiteSpace(req.ContentKeyword))
+            {
+                r = r.Where(t => t.Content.IndexOf(req.ContentKeyword, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (req.PlannedDate.HasValue)
+            {
+                r = r.Where(t => t.PlannedDate.HasValue && t.PlannedDate.Value.Date == req.PlannedDate.Value.Date);
+            }
+
+            if (!string.IsNullOrWhiteSpace(req.Tag))
+            {
+                r = r.Where(t => t.Tags.Contains(req.Tag));
+            }
+
+            if (req.Status.HasValue)
+            {
+                r = r.Where(t => t.Status == req.Status.Value);
+            }
+
+            return r;
         }
 
         public List<TodoItem> ShowTodo()
@@ -117,7 +173,7 @@ namespace NiTodo.App
 
             if (ShowCompletedItems == false)
             {
-                r = _todoRepository.GetAll()
+                r = r
                 .Where(t => t.HasCompletedFiveSecondsBefore(DateTime.Now) == false);
             }
 

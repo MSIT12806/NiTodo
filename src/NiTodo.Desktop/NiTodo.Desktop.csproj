@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NiScheduleApp\NiSchedule.App.csproj" />
     <ProjectReference Include="..\NiTodo.App\NiTodo.App.csproj" />
+    <ProjectReference Include="..\NiScheduleApp\NiScheduleApp.csproj" />
   </ItemGroup>
 
 </Project>

@@ -72,7 +72,7 @@ namespace NiTodo.App
                     // 只要不是None，就更新
                     var tags = this.Tags;
                     var contentWithoutPrefix = GetContentWithoutPrefix();
-                    this.Content = string.Join(" - ", tags) + (tags.Any() ? "-" : "") + $"[{nextStatus}]" + contentWithoutPrefix;
+                    this.Content = string.Join("-", tags) + (tags.Any() ? "-" : "") + $"[{nextStatus}]" + contentWithoutPrefix;
 
                     return;
                 }
